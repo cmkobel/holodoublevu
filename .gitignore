@@ -2,3 +2,4 @@ results/
 
 .snakemake/
 
+heavy_resources/

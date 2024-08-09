@@ -44,7 +44,7 @@ rule dev_r_shell:
     conda: "envs/r-tidyverse.yaml"
     shell: """
         
-        RScript -e '''
+        Rscript -e '''
             paste("dev_r_shell")
         '''
         
@@ -74,4 +74,16 @@ rule validate_metadata:
     """
     
     
+rule validate_inputs:
+    input:
+        sample_metadata = config["principal_input_sample_metadata"],
+        proteome_amino_acid_sequences = config["principal_input_proteome_amino_acid_sequences"],
+        proteome_intensities = config["principal_input_proteome_intensities"],
+        proteome2genome_mapping = config["principal_input_proteome2genome_mapping"],
+    shell: """
+        head -c 300 {input}
+    """
+        
     
+    
+# Now I can just "copy-paste" my scripts from the 26_proteomics_analysis into here and everything will be clean in no time. :) Now I'll drive home to my family in Copenhagen <3
