@@ -4,3 +4,10 @@ configfile: "config/config.yaml"
 
 print(config)
 
+
+rule all:
+    input:
+        "dummy.flag"
+
+
+rule 
