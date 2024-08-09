@@ -6,10 +6,10 @@
 
 ### Inputs
 
-  - Sample metadata. (key sample)
-  - Proteome amino acid sequences. (key protein)
-  - Proteome intensities. (key protein)
-  - Proteome-to-genome mapping. (key protein)
+  - Sample metadata. (key `sample`)
+  - Proteome amino acid sequences. (key `protein`)
+  - Proteome intensities. (key `protein`)
+  - Proteome-to-genome mapping. (key `protein`)
   
 
 ### Outputs
