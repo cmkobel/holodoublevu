@@ -29,3 +29,12 @@
 
 Busy!
 
+## Run
+
+Have conda/[mamba](https://github.com/conda-forge/miniforge#install)
+
+```bash
+# conda env create -f environment.yaml
+# conda activate holodoublevu
+snakemake
+```
