@@ -14,14 +14,14 @@
 
 ### Outputs
 
-  - Filtered and transformed intensities.
-  - Imputed intensities.
-  - Function/intensity main overview table. 
-  - Sample pathway enrichment.
-  - Sample species overview.
-  - Ordination plots (PCA, NMDS, UMAP).
-  - Network analysis (WGCNA).
-  - WGCNA module pathway enrichment.
+  - Filtered and transformed intensities. (key `protein`)
+  - Imputed intensities. (key `protein`)
+  - Function/intensity main overview table. (key `protein`)
+  - Sample pathway enrichment. (key `sample`x`pathway`)
+  - Sample species overview. (key `sample`x`pathway`)
+  - Ordination plots (PCA, NMDS, UMAP). 
+  - Network analysis (WGCNA). (key `module eigengene`)
+  - WGCNA module pathway enrichment. (key `module eigengene`x`pathway`)
   - Other?
 
 
