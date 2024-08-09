@@ -44,9 +44,9 @@ rule dev_r_shell:
     conda: "envs/r-tidyverse.yaml"
     shell: """
         
-        RScript -e '
+        RScript -e '''
             paste("dev_r_shell")
-        '
+        '''
         
         touch {output}
     
@@ -57,12 +57,21 @@ rule dev_r_shell:
 
 
 rule validate_metadata:
-    params: principal_input_metadata
+    input: 
+        metadata = config["principal_input_sample_metadata"]
     conda: "envs/r-tidyverse.yaml"
     shell: """
     
-        Rscript -e '
+        Rscript -e '''
             
             library(tidyverse)
+            
+            metadata = read_tsv("{input.metadata}")
+            
+            metadata %>% glimpse()
                 
-        '
+        '''
+    """
+    
+    
+    

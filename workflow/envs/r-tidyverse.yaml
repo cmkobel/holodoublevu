@@ -1,0 +1,12 @@
+name: r-markdown
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4
+  - r-essentials
+  - conda-forge::r-tidyverse
+  - r-rmarkdown
+  - r-dt
+  
+  
