@@ -31,7 +31,7 @@ Busy!
 
 ## Run
 
-Have conda/[mamba](https://github.com/conda-forge/miniforge#install)
+Have conda/[mamba](https://github.com/conda-forge/miniforge#install). And set the principal inputs in config/config.yaml.
 
 ```bash
 # conda env create -f environment.yaml
