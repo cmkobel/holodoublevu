@@ -7,9 +7,7 @@
 ### Inputs
 
   - Sample metadata.
-    Key `sample`, [tsv]
   - Proteome amino acid sequences.
-    [fasta]
   - Proteome intensities.
   - Proteome-to-genome mapping. 
   
