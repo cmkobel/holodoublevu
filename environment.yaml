@@ -1,0 +1,10 @@
+name: holodoublevu
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - mamba
+  - snakemake=8
+
+
+# conda env create -f environment.yaml
