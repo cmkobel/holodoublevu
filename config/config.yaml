@@ -1,7 +1,7 @@
 
 
 principal_input_sample_metadata: "resources/metadata_v1.6.tsv"
-principal_input_proteome_amino_acid_sequences: "~/PhD..."
+principal_input_proteome_amino_acid_sequences: Should be in the reannotate proj
 principal_input_proteome_intensities: "~/PhD.."
 principal_input_proteome-to-genome_mapping: "~/Phd.."
 

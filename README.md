@@ -34,8 +34,8 @@
 Have conda/[mamba](https://github.com/conda-forge/miniforge#install). And set the principal inputs in config/config.yaml. Then do:
 
 ```bash
-# conda env create -f environment.yaml
-# conda activate holodoublevu
+conda env create -f environment.yaml
+conda activate holodoublevu
 snakemake
 ```
 
