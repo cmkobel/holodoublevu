@@ -1,6 +1,6 @@
 keep-incomplete: true
 rerun-incomplete: true
-cores: 48
+cores: 64
 
 software-deployment-method: conda
 conda-frontend: mamba

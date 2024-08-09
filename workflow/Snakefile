@@ -15,8 +15,20 @@ print(config)
 
 rule all:
     input:
+        # Dev
         "results/dev_r_shell.flag",
         "results/dev_r_script.flag.tsv"
+        
+        # Validation of inputs
+        
+        # Filter
+        
+        # Impute
+        
+        # Viz.
+        
+        # Etc.
+        
 
 
 # These dev_ rules are just templates for doing other things.
@@ -41,4 +53,16 @@ rule dev_r_shell:
     """
     
         
+# I should probably add fragpipe and start with those raw outputs and whatnot. That should actually be easy since there is a report in the end of mspipeline. But in the interest of time I'm gonna reuse the proteomics long that I should just blindly trust that is OK.
 
+
+rule validate_metadata:
+    params: principal_input_metadata
+    conda: "envs/r-tidyverse.yaml"
+    shell: """
+    
+        Rscript -e '
+            
+            library(tidyverse)
+                
+        '
