@@ -1,4 +1,6 @@
+# snakemake --profile profiles/default
 
+configfile: "config/config.yaml"
 
-configfile: config/config.yaml
+print(config)
 

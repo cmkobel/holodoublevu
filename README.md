@@ -6,6 +6,7 @@
 
 ### Inputs
 
+  - Sample metadata.
   - Proteome amino acid sequences.
   - Proteome intensities.
   - Proteome-to-genome mapping. 
