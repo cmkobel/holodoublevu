@@ -1,4 +1,12 @@
-# snakemake --profile profiles/default
+# snakemake
+# https://github.com/cmkobel/holodoublevu
+
+print("//\n            ~~ holodoublevu ~~")
+print(""" 
+    Generalization and parametrization 
+    of the SuPAcow.
+    Phase 1: Proteomics.
+//""")
 
 configfile: "config/config.yaml"
 
@@ -7,7 +15,30 @@ print(config)
 
 rule all:
     input:
-        "dummy.flag"
+        "results/dev_r_shell.flag",
+        "results/dev_r_script.flag.tsv"
 
 
-rule 
+# These dev_ rules are just templates for doing other things.
+rule dev_r_script:
+    output: 
+        thing = "results/dev_r_script.flag.tsv"
+    conda: "envs/r-tidyverse.yaml"
+    script: "scripts/dev_r_script.R"
+    
+rule dev_r_shell:
+    output: 
+        "results/dev_r_shell.flag"
+    conda: "envs/r-tidyverse.yaml"
+    shell: """
+        
+        RScript -e '
+            paste("dev_r_shell")
+        '
+        
+        touch {output}
+    
+    """
+    
+        
+
