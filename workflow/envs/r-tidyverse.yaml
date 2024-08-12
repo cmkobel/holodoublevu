@@ -5,6 +5,7 @@ channels:
 dependencies:
   - r-base=4
   - r-essentials
+  - r-missranger
   - conda-forge::r-tidyverse
   - r-rmarkdown
   - r-dt

@@ -12,6 +12,11 @@ configfile: "config/config.yaml"
 
 print(config)
 
+print(">>", config["imputation_group"]["both"])
+
+
+
+
 
 rule all:
     input:
@@ -20,7 +25,7 @@ rule all:
         "results/filtered/proteome_intensities.rds",
         
         # Impute
-        "results/imputed/proteome_intensities.rds"
+        [f"results/{i}/imputed/proteome_intensities.rds" for i in config["imputation_group"].keys()]
         
         # Viz.
         
@@ -71,12 +76,12 @@ rule validate_inputs:
 rule filter_proteomics:
     """ Remove outlier samples. """
     input:
-        sample_metadata = config["principal_input_sample_metadata"],
+        metadata = config["principal_input_sample_metadata"],
         proteome_intensities = config["principal_input_proteome_intensities"],
     output:
         filtered = "results/filtered/proteome_intensities.rds",
     conda: "envs/r-tidyverse.yaml"
-    script: "scripts/filtering.R"
+    script: "scripts/filter.R"
 
     
 
@@ -85,10 +90,13 @@ rule filter_proteomics:
 rule impute_proteomics:
     """ Remove outlier samples. """
     input:
-        sample_metadata = config["principal_input_sample_metadata"],
+        metadata = config["principal_input_sample_metadata"],
         filtered = "results/filtered/proteome_intensities.rds",
     output:
-        imputed = "results/imputed/proteome_intensities.rds",
+        #imputed = "results/imputed/proteome_intensities.rds",
+        imputed = "results/{imputation_group}/imputed/proteome_intensities.rds"
+    params:
+        samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
     conda: "envs/r-tidyverse.yaml"
     script: "scripts/impute.R"
 

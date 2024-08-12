@@ -6,7 +6,7 @@ source("workflow/scripts/utils.R")
 
 # --- Inputs
 
-proteome_intensities_raw <- read_rds(snakemake@input["proteome_intensities"] %>% as.character())
+proteome_intensities_raw <- read_rds(snakemake@input[["proteome_intensities"]] %>% as.character())
 # proteome_intensities_raw <- read_rds("/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/00_uniform_data/proteomics_long_v2.rds")
 
 # --- Clean
@@ -35,7 +35,7 @@ proteome_intensities <- proteome_intensities_raw %>%
 
 
 proteome_intensities %>%
-    random_head()
+    show_some()
 
 
 # --- Outlier removal
@@ -81,5 +81,12 @@ filter1 %>% filter(!pass_filter)
 
 
 
-proteome_intensities_filtered %>%
-    write_rds(snakemake@output["filtered"] %>% as.character())
+paste("exporting to rds.")
+final <- proteome_intensities_filtered %>%
+    supacow_paste_sample() %>%
+    select(protein, sample, intensity) %>%
+    show_some()
+
+
+final %>%
+    write_rds(snakemake@output[["filtered"]] %>% as.character())
