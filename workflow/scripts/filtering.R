@@ -74,8 +74,12 @@ proteome_intensities_filtered <- proteome_intensities %>%
     filter(pass_filter)
 
 
-paste("before:", proteome_intensities %>% nrow())
-paste("after:", proteome_intensities_filtered %>% nrow())
+paste("number of proteins before:", proteome_intensities %>% nrow())
+paste("number of proteins after:", proteome_intensities_filtered %>% nrow())
+paste("sample removed:")
+filter1 %>% filter(!pass_filter)
+
+
 
 proteome_intensities_filtered %>%
     write_rds(snakemake@output["filtered"] %>% as.character())

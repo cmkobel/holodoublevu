@@ -81,3 +81,15 @@ rule filter_proteomics:
     
 
     
+# rule impute
+rule impute_proteomics:
+    """ Remove outlier samples. """
+    input:
+        sample_metadata = config["principal_input_sample_metadata"],
+        filtered = "results/filtered/proteome_intensities.rds",
+    output:
+        imputed = "results/imputed/proteome_intensities.rds",
+    conda: "envs/r-tidyverse.yaml"
+    script: "scripts/impute.R"
+
+
