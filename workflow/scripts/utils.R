@@ -48,6 +48,15 @@ show_some <- function(df, n = 10) {
     df
 }
 
+handful <- function(df, n = 9) {
+    slice_sample(df, n = n) %>%
+        print()
+
+    message(nrow(df), " rows in total.")
+
+    NULL # This is for safety, so noone leaves a handful() call in the middle of production code while debugging.
+}
+
 add_collection_column <- function(df) {
     df %>%
         mutate(collection = case_when(

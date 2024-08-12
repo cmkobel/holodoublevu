@@ -1,0 +1,10 @@
+name: eggnog
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconda::eggnog-mapper=2.1.12
+
+
+# https://github.com/eggnogdb/eggnog-mapper/wiki/eggNOG-mapper-v2.1.5-to-v2.1.12#user-content-Installation
+# conda install -c bioconda -c conda-forge eggnog-mapper

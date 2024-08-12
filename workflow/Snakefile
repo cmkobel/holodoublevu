@@ -12,25 +12,58 @@ configfile: "config/config.yaml"
 
 print(config)
 
-print(">>", config["imputation_group"]["both"])
-
-
-
 
 
 rule all:
     input:
-        # Validation of inputs
+        # Annotate proteome
+        "results/annotation/annotation.emapper.annotations",
+        
+        
+        # Proteomics
         # Filter
         "results/filtered/proteome_intensities.rds",
+        
+        # Viz.
+        # Alluvial
         
         # Impute
         [f"results/{i}/imputed/proteome_intensities.rds" for i in config["imputation_group"].keys()]
         
-        # Viz.
+        # WGCNA
+        # compute modules
         
-        # Etc.
         
+        
+        
+        
+
+rule annotate_proteome:
+    """ Annotate proteome. """
+    input: 
+        protein_database = config["principal_input_proteome_amino_acid_sequences"]
+    output:
+        annotations = "results/annotation/annotation.emapper.annotations",
+    params:
+        db = config["eggnog_database"],
+    conda: "envs/eggnog.yaml"
+    threads: 128
+    shell: """
+    
+        emapper.py \
+            --data_dir {params.db} \
+            --output_dir "$(dirname {output.annotations})/" \
+            -o annotation \
+            -i {input.protein_database} \
+            --cpu {threads} \
+            --itype proteins \
+            --override \
+            --temp_dir $TMPDIR \
+            --decorate_gff no \
+            -m diamond
+    
+    
+    """
 
 
 
@@ -93,11 +126,10 @@ rule impute_proteomics:
         metadata = config["principal_input_sample_metadata"],
         filtered = "results/filtered/proteome_intensities.rds",
     output:
-        #imputed = "results/imputed/proteome_intensities.rds",
         imputed = "results/{imputation_group}/imputed/proteome_intensities.rds"
     params:
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
-    conda: "envs/r-tidyverse.yaml"
+    conda: "envs/r-missranger.yaml"
     script: "scripts/impute.R"
 
 

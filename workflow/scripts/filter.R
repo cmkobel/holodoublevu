@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 
+
+
 library(tidyverse)
-library(magrittr)
+
 source("workflow/scripts/utils.R")
 
 # --- Inputs
@@ -14,10 +16,11 @@ proteome_intensities_raw <- read_rds(snakemake@input[["proteome_intensities"]] %
 # Check that the sample names are uniform.
 proteome_intensities_raw %>%
     slice_sample(n = 100) %>%
-    view()
+    glimpse()
 
 # Rename L samples
 proteome_intensities <- proteome_intensities_raw %>%
+    filter(protein != "fra|NA") %>% # These are decoy contaminants which should have been removed long ago.
     select(-source) %>%
     supacow_separate_sample(keep_debug_columns = F) %>%
     mutate(timepoint = case_when(
@@ -33,9 +36,11 @@ proteome_intensities <- proteome_intensities_raw %>%
         TRUE ~ "tube"
     ))
 
+nrow(proteome_intensities)
+
 
 proteome_intensities %>%
-    show_some()
+    handful()
 
 
 # --- Outlier removal
@@ -62,7 +67,7 @@ filter1 %>%
     geom_text(size = 2, hjust = 0, vjust = 0, color = "black") +
     geom_point(alpha = 0.3)
 
-ggsave("results/filtered/plots/plot1.png")
+ggsave("results/filtered/plots/plot1.png", create.dir = T)
 
 
 
@@ -84,9 +89,10 @@ filter1 %>% filter(!pass_filter)
 paste("exporting to rds.")
 final <- proteome_intensities_filtered %>%
     supacow_paste_sample() %>%
-    select(protein, sample, intensity) %>%
-    show_some()
+    select(protein, sample, intensity)
 
+
+final %>% handful()
 
 final %>%
     write_rds(snakemake@output[["filtered"]] %>% as.character())
