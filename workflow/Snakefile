@@ -189,7 +189,29 @@ rule inspect_wgcna:
     
 
 
+rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
+    input:
+        metadata = config["principal_input_sample_metadata"],
+        groups = "results/ig/{imputation_group}/imputed/groups.tsv",
+        annotations = "results/annotation/annotation.emapper.annotations",
+        wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
+        kegg_data = config["kegg_data"],
+    output:
+        pathway_enrichment = "results/ig/{imputation_group}/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds",
+    conda: "envs/r-clusterprofiler.yaml"
+    script: "scripts/wgcna_pathway_enrichment.R"
 
-# rule wgcna_pathway_enrichment:
-# rule visualize_alluvial:
-# rule proteome_genomic_pathway_enrichment:
+
+
+
+
+
+
+
+
+
+
+
+# rule proteome_genomic_pathway_enrichment: # Good to understand Velmas results with.
+# rule wgcna_holomodules: # for network visualization
+# rule visualize_alluvial: # We already have this, so not super important.

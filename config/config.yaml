@@ -6,7 +6,7 @@ principal_input_proteome_intensities: "/glittertind/home/carl/PhD/26_proteomics_
 principal_input_proteome2genome_mapping: "/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
 
 eggnog_database: "/spaceface/shared_databases/asscom2_v2.5.5+/eggnog/"
-
+kegg_data: "resources/kegg_data.tsv"
 
 # Filtered out samples are not included in the imputation_group dictionary.
 imputation_group:
