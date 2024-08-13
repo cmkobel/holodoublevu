@@ -1,12 +1,21 @@
 # snakemake
 # https://github.com/cmkobel/holodoublevu
 
-print("//\n            ~~ holodoublevu ~~")
+
+print()
+print("░  ░░░░  ░░░      ░░░  ░░░░░░░░░      ░░░       ░░░░      ░░░  ░░░░  ░░       ░░░  ░░░░░░░░        ░░  ░░░░  ░░  ░░░░  ░")
+print("▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒")
+print("▓        ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓▓▓▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓       ▓▓▓  ▓▓▓▓▓▓▓▓      ▓▓▓▓▓  ▓▓  ▓▓▓  ▓▓▓▓  ▓")
+print("█  ████  ██  ████  ██  ████████  ████  ██  ████  ██  ████  ██  ████  ██  ████  ██  ████████  ██████████    ████  ████  █")
+print("█  ████  ███      ███        ███      ███       ████      ████      ███       ███        ██        █████  ██████      ██")
+                                                                                                                        
 print(""" 
     Generalization and parametrization 
     of the SuPAcow.
     Phase 1: Proteomics.
 //""")
+
+
 
 configfile: "config/config.yaml"
 
@@ -43,8 +52,8 @@ rule all:
         # Pathway enrichment on modules
         
         # TODO:
-        # WGCNA
         # PE on WGCNA
+        # WGCNA holomodules 
         # Alluvial, proteomics on genomes
         # PE, proteomics on genomes
         

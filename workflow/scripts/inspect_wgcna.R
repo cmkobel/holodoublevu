@@ -20,6 +20,9 @@ if (F) {
     figno_var <<- 1000
 }
 
+height = 12
+width <- 12
+
 metadata <- read_tsv(metadata_file)
 net_results <- read_rds(net_results_file)
 groups <- read_tsv(groups_file)
@@ -50,7 +53,7 @@ i <- net_results[[1]]
 lapply(
     net_results,
     function(i) {
-        pdf(generate_fig_name(output_rds_file, "dendro"))
+        pdf(generate_fig_name(output_rds_file, "dendro"), height = height, width = width)
         plotDendroAndColors(
             i$net$dendrograms[[1]],
             tibble(index = i$net$blockGenes[[1]]) %>%
@@ -78,7 +81,7 @@ lapply(
 p <- lapply(
     net_results, # [1], # select one only with [n] where in is in 1:6.
     function(x) {
-        pdf(generate_fig_name(output_rds_file, "pheatmap"))
+        pdf(generate_fig_name(output_rds_file, "pheatmap"), height = height, width = width)
         pheatmap::pheatmap(
             x$net$MEs,
             # main = paste0("Module Eigengenes\n", keys_presentable %>% filter(group_index == x$group_index) %>% pull(presentable) %>% unique())
@@ -100,7 +103,7 @@ p <- lapply(
 lapply(
     net_results, # [1], # select one only with [n] where in is in 1:6.
     function(i) {
-        pdf(generate_fig_name(output_rds_file, "me_pheatmap"))
+        pdf(generate_fig_name(output_rds_file, "me_pheatmap"), height = height, width = width)
         pheatmap::pheatmap(
             i$net$MEs,
             main = paste(
@@ -138,7 +141,7 @@ wanted_keys = list(
 bicor_module2module <- lapply(
     wanted_keys,
     function(x) {
-        pdf(generate_fig_name(output_rds_file, "mod2mod"))
+        pdf(generate_fig_name(output_rds_file, "mod2mod"), height = height, width = width)
 
         i <- x # i = list(A = 1, B = 7) # DEBUG
 
@@ -277,7 +280,7 @@ net_results[groups %>%
     pull(group_index)] %>%
     lapply(
         function(x) {
-            pdf(generate_fig_name(output_rds_file, "pheno"))
+            pdf(generate_fig_name(output_rds_file, "pheno"), height = height, width = width)
 
             presentable <- paste(
                 groups %>% filter(group_index == x$group_index),
