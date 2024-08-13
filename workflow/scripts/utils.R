@@ -42,7 +42,7 @@ supacow_paste_sample <- function(df, keep_columns = FALSE) {
 handful <- function(df, .return = F, n = 7) {
     # Shows a random handful op items. For safety it doesn't return anything (by default).
 
-    message("Showing the first ", n, " rows:")
+    message("Showing ", n, " random rows:")
 
     if ("data.frame" %in% class(df)) {
         slice_sample(df, n = n) %>%
@@ -54,7 +54,6 @@ handful <- function(df, .return = F, n = 7) {
             print()
         message(length(df), " items in total.")
     }
-
 
     if (.return) {
         df

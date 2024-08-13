@@ -131,7 +131,7 @@ rule impute_proteomics:
         filtered = "results/filtered/proteome_intensities.rds",
     output:
         imputed = "results/ig/{imputation_group}/imputed/proteome_intensities.rds",
-        imputation_group = "results/ig/{imputation_group}/imputed/imputation_group.tsv" # This is a specific table per 
+        groups = "results/ig/{imputation_group}/imputed/groups.tsv" # This is a specific table per 
     params:
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
     conda: "envs/r-missranger.yaml"

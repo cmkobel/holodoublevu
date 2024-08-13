@@ -111,5 +111,5 @@ imputed %>%
 imputed %>%
     write_rds_and_tsv(snakemake@output[["imputed"]] %>% as.character())
 
-imputation_group %>%
-    write_tsv(snakemake@output[["imputation_group"]] %>% as.character())
+groups %>%
+    write_tsv(snakemake@output[["groups"]] %>% as.character())
