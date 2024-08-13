@@ -103,7 +103,7 @@ lapply(
 
 
 
-i <- (proteome_intensities %>% # This is a debug setup.
+i <- (proteome_intensities %>% # Debug friendly setup.
     group_by(group_index) %>%
     group_split())[[1]]
 
@@ -178,3 +178,59 @@ groups_estimate <- groups %>%
 # Since I really want to be able to compare across layers, I'm gonna pick the same threshold.
 groups_final = groups_estimate %>%
     mutate(threshold_final = 12)
+
+
+# --- Make modules
+
+
+
+i <- (proteome_intensities %>% # Debug friendly setup.
+    group_by(group_index) %>%
+    group_split())[[1]]
+
+net_results <- thresholds <- lapply(
+    (proteome_intensities %>%
+        group_by(group_index) %>%
+        group_split()),
+    function(i) {
+        i %>% handful()
+
+        current_group_index <- i$group_index[[1]]
+        message("group index ", current_group_index)
+
+        current_group <- groups_final %>% filter(group_index == current_group_index)
+        current_group
+
+        wide <- i %>%
+            pivot_wider(id_cols = c(sample, group_index), names_from = "protein", values_from = "intensity") %>%
+            select(-group_index)
+
+
+        current_power <- current_group$threshold_final
+        message("current power ", current_power)
+
+        # Should probably try this with corType = "bicor" instead of the default corType = "pearson"
+        net <- blockwiseModules(
+            datExpr = wide %>% column_to_rownames("sample"),
+            power = current_power,
+            networkType = "signed",
+            TOMType = "signed",
+            # corType = "bicor", # Wanxin's idea.
+            numericLabels = T # T if you want to manually recolor.
+            # reassignThreshold = 0 # Torgeir's suggestion
+        )
+
+        list(
+            group_index = current_group_index,
+            net = net
+
+            # numeric_net = numeric_net,
+            # new_words = new_words
+        )
+    }
+)
+
+
+# Save net results to disk
+net_results %>%
+    write_rds(snakemake@output[["wgcna_modules"]] %>% as.character())

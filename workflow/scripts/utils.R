@@ -88,3 +88,24 @@ write_rds_and_tsv <- function(x, path_to_rds) {
     message("Writing ", nrows, " x ", ncols, " (rows x cols) to ", path_to_tsv)
     write_tsv(x, path_to_tsv)
 }
+
+
+
+
+# A function that returns a new global figure enumerator for each call
+
+figno_var <- 0
+figno <- function() {
+    figno_var <<- figno_var + 1
+    figno_var
+}
+
+
+generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pdf") {
+    rv <- paste0(dirname(adjacent_file), "/", title, "_", figno(), ".", extension)
+
+    message("Plotting to file", rv)
+    dir.create(dirname(rv), showWarnings = F)
+
+    rv
+}
