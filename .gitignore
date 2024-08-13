@@ -4,3 +4,10 @@ results/
 
 heavy_resources
 Rplots.pdf
+
+
+./*.pdf
+./*.png
+./*.rds
+./*.tsv
+

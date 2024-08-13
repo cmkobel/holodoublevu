@@ -39,22 +39,28 @@ supacow_paste_sample <- function(df, keep_columns = FALSE) {
 }
 
 
-show_some <- function(df, n = 10) {
-    # Like head, but with random rows.
-    df %>%
-        slice_sample(n = n) %>%
-        print()
+handful <- function(df, .return = F, n = 7) {
+    # Shows a random handful op items. For safety it doesn't return anything (by default).
 
-    df
-}
+    message("Showing the first ", n, " rows:")
 
-handful <- function(df, n = 9) {
-    slice_sample(df, n = n) %>%
-        print()
+    if ("data.frame" %in% class(df)) {
+        slice_sample(df, n = n) %>%
+            print()
 
-    message(nrow(df), " rows in total.")
+        message(nrow(df), " rows in total.")
+    } else {
+        sample(df, n) %>%
+            print()
+        message(length(df), " items in total.")
+    }
 
-    NULL # This is for safety, so noone leaves a handful() call in the middle of production code while debugging.
+
+    if (.return) {
+        df
+    } else {
+        NULL # This is for safety, so noone leaves a handful() call in the middle of production code while debugging.
+    }
 }
 
 add_collection_column <- function(df) {
@@ -63,4 +69,23 @@ add_collection_column <- function(df) {
             timepoint == "T6" ~ "slaughter",
             TRUE ~ "tube"
         ))
+}
+
+
+
+write_rds_and_tsv <- function(x, path_to_rds) {
+    nrows <- nrow(x)
+    ncols <- ncol(x)
+
+    if (!str_detect(path_to_rds, "\\.rds$")) {
+        stop("path_to_rds must end on \".rds\" but is \"", path_to_rds, "\"")
+    }
+
+    message("Writing ", nrows, " x ", ncols, " (rows x cols) to ", path_to_rds)
+    write_rds(x, path_to_rds)
+
+    path_to_tsv <- str_replace(path_to_rds, "\\.rds$", ".tsv")
+
+    message("Writing ", nrows, " x ", ncols, " (rows x cols) to ", path_to_tsv)
+    write_tsv(x, path_to_tsv)
 }

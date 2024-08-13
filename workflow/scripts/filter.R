@@ -95,4 +95,4 @@ final <- proteome_intensities_filtered %>%
 final %>% handful()
 
 final %>%
-    write_rds(snakemake@output[["filtered"]] %>% as.character())
+    write_rds_and_tsv(snakemake@output[["filtered"]] %>% as.character())

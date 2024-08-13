@@ -14,13 +14,15 @@ metadata <- read_tsv(snakemake@input[["metadata"]] %>% as.character())
 proteome_intensities_raw <- read_rds(snakemake@input[["filtered"]] %>% as.character())
 # proteome_intensities_raw <- read_rds("results/filtered/proteome_intensities.rds")
 
+
 samples <- snakemake@params[["samples"]]
 # samples <- c("D06T6S", "D08T6S", "D16T6S", "D25T6S", "D28T1S", "D28T2S", "D28T3S", "D28T4S", "D28T5S", "D28T6S", "D29T6S", "D35T6S", "D51T1S", "D51T2S", "D51T3S", "D51T4S", "D51T5S", "D51T6S", "D60T6S", "D61T6S", "D76T6S", "L06T6R", "L08T6R", "L16T6R", "L25T6R", "L28T6R", "L29T6R", "L35T6R", "L42T6R", "L51T6R", "L60T6R", "L61T6R", "L76T6R", "W06T6R", "W08T6R", "W16T6R", "W25T6R", "W29T6R", "W35T6R", "W42T6R", "W51T6R", "W60T6R", "W61T6R", "W76T6R") # luing example
 
 paste("number of samples", length(samples))
 paste(samples)
 
-imputation_group = tibble(sample = samples, included = T) %>% show_some()
+imputation_group <- tibble(sample = samples, included = T)
+imputation_group %>% handful()
 # --- Housekeeping
 
 # Check that the wanted breeds are included.
@@ -94,7 +96,7 @@ imputed <- lapply(
             missRanger() %>%
             as_tibble(rownames = "protein") %>%
             mutate(group_index = title_) %>%
-            relocate(protein, group_index)
+            pivot_longer(-c(protein, group_index), names_to = "sample", values_to = "intensity")
 
         # Filter based on the number of samples that the protein is in. I think the default that I used to use was 4.
         # Is there a neat way of counting that?
@@ -107,7 +109,7 @@ imputed %>%
     handful()
 
 imputed %>%
-    write_rds(snakemake@output[["imputed"]] %>% as.character())
+    write_rds_and_tsv(snakemake@output[["imputed"]] %>% as.character())
 
 imputation_group %>%
-    write_rds(snakemake@output[["imputation_group"]] as.character())
+    write_tsv(snakemake@output[["imputation_group"]] %>% as.character())

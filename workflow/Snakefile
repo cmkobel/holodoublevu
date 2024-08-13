@@ -20,18 +20,23 @@ rule all:
         "results/annotation/annotation.emapper.annotations",
         
         
+
+        
         # Proteomics
         # Filter
         "results/filtered/proteome_intensities.rds",
+        
+        # Pathway enrichment
         
         # Viz.
         # Alluvial
         
         # Impute
-        [f"results/ig/{i}/imputed/proteome_intensities.rds" for i in config["imputation_group"].keys()]
+        [f"results/ig/{i}/imputed/proteome_intensities.rds" for i in config["imputation_group"].keys()],
         
         # WGCNA
         # compute modules
+        [f"results/ig/{i}/wgcna/modules.rds" for i in config["imputation_group"].keys()]
         
         
         
@@ -102,7 +107,6 @@ rule validate_inputs:
     """
         
     
-    
 # Now I can just "copy-paste" my scripts from the 26_proteomics_analysis into here and everything will be clean in no time. :) Now I'll drive home to my family in Copenhagen <3
 
 
@@ -135,17 +139,17 @@ rule impute_proteomics:
 
 
 # rule WGCNA_modules
-rule WGCNA_modules:
+rule wgcna_modules:
     """ Call WGCNA modules. """
     input:
         metadata = config["principal_input_sample_metadata"],
         imputed = "results/ig/{imputation_group}/imputed/proteome_intensities.rds",
         imputation_group = "results/ig/{imputation_group}/imputed/imputation_group.tsv",
     output:
-        WGCNA_modules = "results/ig/{imputation_group}/WGCNA_modules/proteome_intensities.rds"
+        WGCNA_modules = "results/ig/{imputation_group}/wgcna/modules.rds"
     params:
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
     conda: "envs/r-missranger.yaml"
-    script: "scripts/WGCNA_modules.R"
+    script: "scripts/wgcna_modules.R"
 
 
