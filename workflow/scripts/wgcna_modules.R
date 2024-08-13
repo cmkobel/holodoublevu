@@ -11,6 +11,7 @@ proteome_intensities <- read_rds(snakemake@input[["imputed"]] %>% as.character()
 groups <- read_tsv(snakemake@input[["groups"]] %>% as.character())
 samples <- snakemake@params[["samples"]]
 
+
 # For debugging
 if (F) {
     metadata <- read_tsv("resources/metadata_v1.6.tsv")
@@ -26,6 +27,8 @@ metadata %>% handful()
 proteome_intensities %>% handful()
 groups %>% handful()
 samples %>% handful()
+
+
 
 
 
@@ -46,7 +49,8 @@ hclust_naive <- lapply(
         current_group_index <- i$group_index[[1]]
         message("group index ", current_group_index)
 
-        groups %>% filter(group_index == current_group_index)
+        current_group <- groups %>% filter(group_index == current_group_index)
+        current_group
 
         wide <- i %>%
             pivot_wider(id_cols = c(sample, group_index), names_from = "protein", values_from = "intensity") %>%
@@ -77,6 +81,7 @@ hclust_naive <- lapply(
     }
 )
 
+pdf(file = paste0(as.character(snakemake@output[["wgcna_modules"]]), "_hclust.pdf"))
 lapply(
     hclust_naive,
     function(i) {
@@ -85,9 +90,91 @@ lapply(
             i$trait_colors_data %>% numbers2colors(),
             groupLabels = names(i$trait_colors_data),
             main = paste(
-                groups %>% filter(group_index == current_group_index),
+                groups %>% filter(group_index == i$group_index),
                 collapse = ", "
             )
         )
     }
 )
+
+
+# --- Pick scalefree threshold
+# These will be added to the groups table
+
+
+
+i <- (proteome_intensities %>% # This is a debug setup.
+    group_by(group_index) %>%
+    group_split())[[1]]
+
+thresholds <- lapply(
+    (proteome_intensities %>%
+        group_by(group_index) %>%
+        group_split()),
+    function(i) {
+        i %>% handful()
+
+        current_group_index <- i$group_index[[1]]
+        message("group index ", current_group_index)
+
+        current_group <- groups %>% filter(group_index == current_group_index)
+        current_group
+
+        wide <- i %>%
+            pivot_wider(id_cols = c(sample, group_index), names_from = "protein", values_from = "intensity") %>%
+            select(-group_index)
+
+        pst <- pickSoftThreshold(
+            wide %>% column_to_rownames("sample"),
+            RsquaredCut = .8, # Default is .85. Maybe set it to .8
+            powerVector = c(seq(1, 10, by = 2), seq(12, 30, by = 3))
+        )
+
+
+        list(
+            group_index = current_group_index,
+            pst = pst,
+            wide = wide
+        )
+    }
+)
+
+
+# pst plots
+pdf(file = paste0(as.character(snakemake@output[["wgcna_modules"]]), "_pst.pdf"))
+lapply(
+    thresholds,
+    function(i) {
+        i$pst$fitIndices %>%
+            pivot_longer(-Power) %>%
+            ggplot(aes(Power, value)) +
+            geom_point() +
+            geom_line() +
+            facet_wrap(~name, scales = "free") +
+            geom_vline(xintercept = i$pst$powerEstimate, linetype = "dashed", color = "red") +
+            geom_vline(xintercept = 12, linetype = "dashed", color = "green3", alpha = 0.7) +
+            geom_hline(yintercept = .8, linetype = "dashed", color = "grey", alpha = 0.5) +
+            theme() +
+            labs(
+                title = paste(
+                    groups %>% filter(group_index == i$group_index),
+                    collapse = ", "
+                ),
+                subtitle = "WGCNA::pickSoftThreshold",
+                caption = paste0("powerEstimate = ", i$pst$powerEstimate)
+            )
+    }
+)
+
+groups_estimate <- groups %>%
+    rowwise() %>%
+    mutate(
+        threshold_estimate = (function(x) {
+            thresholds[[x]]$pst$powerEstimate
+        })(group_index)
+    )
+
+
+# Since I really want to be able to compare across layers, I'm gonna pick the same threshold.
+groups_final = groups_estimate %>%
+    mutate(threshold_final = 12)

@@ -144,12 +144,12 @@ rule wgcna_modules:
     input:
         metadata = config["principal_input_sample_metadata"],
         imputed = "results/ig/{imputation_group}/imputed/proteome_intensities.rds",
-        imputation_group = "results/ig/{imputation_group}/imputed/imputation_group.tsv",
+        groups = "results/ig/{imputation_group}/imputed/groups.tsv",
     output:
-        WGCNA_modules = "results/ig/{imputation_group}/wgcna/modules.rds"
+        wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds"
     params:
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
-    conda: "envs/r-missranger.yaml"
+    conda: "envs/r-wgcna.yaml"
     script: "scripts/wgcna_modules.R"
 
 

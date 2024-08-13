@@ -6,6 +6,6 @@ dependencies:
   - r-base
   - r-essentials
   - conda-forge::r-tidyverse
-  - r-WGCNA
+  - r-wgcna
   
   
