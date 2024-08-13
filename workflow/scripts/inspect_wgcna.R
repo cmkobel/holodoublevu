@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-
+# rm(list = ls())
 library(tidyverse)
 library(WGCNA)
 source("workflow/scripts/utils.R")
@@ -9,14 +9,14 @@ source("workflow/scripts/utils.R")
 metadata_file <- snakemake@input[["metadata"]] %>% as.character()
 net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 groups_file = snakemake@input[["groups"]] %>% as.character()
-output_plot_file = snakemake@output[["plot"]] %>% as.character()
+output_rds_file <- snakemake@output[["mod2mod"]] %>% as.character()
 
 # For debugging
 if (F) {
     metadata_file <- "resources/metadata_v1.6.tsv"
     net_results_file <- "results/ig/luing/wgcna/modules.rds"
     groups_file <- "results/ig/luing/imputed/groups.tsv"
-    output_plot_file <- "results/ig/luing/wgcna/inspected/plot.pdf"
+    output_rds_file <- "results/ig/luing/wgcna/inspected/module2module.rds"
     figno_var <<- 1000
 }
 
@@ -50,7 +50,7 @@ i <- net_results[[1]]
 lapply(
     net_results,
     function(i) {
-        pdf(generate_fig_name(output_plot_file, "dendro"))
+        pdf(generate_fig_name(output_rds_file, "dendro"))
         plotDendroAndColors(
             i$net$dendrograms[[1]],
             tibble(index = i$net$blockGenes[[1]]) %>%
@@ -67,7 +67,7 @@ lapply(
         )
         dev.off()
 
-        # ggsave(generate_fig_name(output_plot_file, "dendro"))
+        # ggsave(generate_fig_name(output_rds_file, "dendro"))
     }
 )
 
@@ -78,7 +78,7 @@ lapply(
 p <- lapply(
     net_results, # [1], # select one only with [n] where in is in 1:6.
     function(x) {
-        pdf(generate_fig_name(output_plot_file, "pheatmap"))
+        pdf(generate_fig_name(output_rds_file, "pheatmap"))
         pheatmap::pheatmap(
             x$net$MEs,
             # main = paste0("Module Eigengenes\n", keys_presentable %>% filter(group_index == x$group_index) %>% pull(presentable) %>% unique())
@@ -88,7 +88,7 @@ p <- lapply(
             )
         )
         dev.off()
-        # ggsave(generate_fig_name(output_plot_file, "pheatmap"))
+        # ggsave(generate_fig_name(output_rds_file, "pheatmap"))
     }
 )
 
@@ -100,7 +100,7 @@ p <- lapply(
 lapply(
     net_results, # [1], # select one only with [n] where in is in 1:6.
     function(i) {
-        pdf(generate_fig_name(output_plot_file, "me_pheatmap"))
+        pdf(generate_fig_name(output_rds_file, "me_pheatmap"))
         pheatmap::pheatmap(
             i$net$MEs,
             main = paste(
@@ -138,7 +138,7 @@ wanted_keys = list(
 bicor_module2module <- lapply(
     wanted_keys,
     function(x) {
-        pdf(generate_fig_name(output_plot_file, "mod2mod"))
+        pdf(generate_fig_name(output_rds_file, "mod2mod"))
 
         i <- x # i = list(A = 1, B = 7) # DEBUG
 
@@ -245,4 +245,67 @@ bicor_module2module <- lapply(
     }
 )
 
-bicor_module2module
+
+bicor_module2module %>%
+    write_rds(output_rds_file)
+
+
+# --- Correlating to phenotypes
+
+
+
+
+# By converting this before the for loop of each layer, I know that the factors will be comparable between layers. Makes visual interpretation easier.
+metadata_numeric <- metadata %>%
+    mutate(across(
+        # c(everything(), -animal),
+        -animal,
+        ~ .x %>%
+            as.factor() %>%
+            as.numeric()
+    ))
+
+
+
+
+
+
+# You will get problems with duplicate keys if you run this with the tube samples.
+
+net_results[groups %>%
+    filter(collection != "tube") %>%
+    pull(group_index)] %>%
+    lapply(
+        function(x) {
+            pdf(generate_fig_name(output_rds_file, "pheno"))
+
+            presentable <- paste(
+                groups %>% filter(group_index == x$group_index),
+                collapse = ", "
+            )
+
+            bicor_result <- bicorAndPvalue(
+                x = x$net$MEs,
+                y = x$net$MEs %>%
+                    rownames_to_column("sample") %>%
+                    select(sample) %>%
+                    transmute(animal = str_sub(sample, 2, 3)) %>%
+                    left_join(
+                        metadata_numeric,
+                        by = "animal"
+                    ) %>%
+                    select(where(~ var(.x, na.rm = T) > 0)) %>%
+                    column_to_rownames("animal"),
+                use = "pairwise.complete.obs"
+            )
+            pheatmap::pheatmap(
+                mat = bicor_result$bicor,
+                display_numbers = bicor_result$p %>%
+                    gtools::stars.pval(),
+                main = presentable
+            ) %>%
+                print()
+
+            dev.off()
+        }
+    )

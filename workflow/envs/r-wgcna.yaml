@@ -8,5 +8,6 @@ dependencies:
   - conda-forge::r-tidyverse
   - r-wgcna
   - r-pheatmap
+  - r-gtools
   
   
