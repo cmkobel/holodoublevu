@@ -2,6 +2,9 @@
 
 > I'm a pipeline kinda guy.
 
+This is a snakemake workflow that contains (nearly) all steps to perform the proteomics network analysis and interpretation.
+
+
 ## IO
 
 ### Inputs
