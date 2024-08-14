@@ -21,6 +21,9 @@ if (F) {
     net_results_file <- "results/ig/luing/wgcna/modules.rds"
     annotations_file <- "results/annotation/annotation.emapper.annotations"
     kegg_data_file <- "resources/kegg_data.tsv"
+
+    output_pathway_enrichment_file <- "results/ig/aberdeen/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds"
+
     figno_var <<- 1000
 }
 
@@ -149,14 +152,33 @@ pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
 # Simple tile showing pathways and modules
 
 
+pathway_hierarchy <- kegg_data %>%
+    distinct(pathway_class = class, pathway_group = group, pathway)
+handful(pathway_hierarchy)
+
 lapply(
     pe_analyses %>%
-        group_by(group_index),
+        group_by(group_index) %>%
+        group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[1]],
     function(i) {
+        i %>%
+            left_join(pathway_hierarchy, by = "pathway") %>%
+            # slice_sample(n = 100) %>%
+            filter(!str_detect(pathway_class, "^09160|09190")) %>%
+            ggplot(aes(module, pathway, fill = p.adjust)) +
+            # facet_wrap(~pathway_class, space = "free") +
+            scale_fill_viridis_b(begin = 0, end = .85) +
+            ggforce::facet_col(pathway_class ~ ., scales = "free_y", space = "free") +
+            geom_tile() +
+            theme_bw() +
+            labs(
+                title = paste(
+                    groups %>% filter(group_index == i$group_index[[1]]),
+                    collapse = ", "
+                ),
+                subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported."
+            )
 
-        slice_sample(n = 1000) %>%
-        ggplot(aes(module, pathway, fill = p.adjust)) +
-        facet_wrap(~group_index) +
-        geom_tile()
-
+        ggsave(generate_fig_name(output_pathway_enrichment_file, "tile"), height = 22, width = 12)
     }
+)
