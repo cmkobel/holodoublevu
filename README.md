@@ -2,7 +2,9 @@
 
 > I'm a pipeline kinda guy.
 
-This is a snakemake workflow that contains (nearly) all steps to perform the proteomics network analysis and interpretation.
+This is a snakemake workflow that contains (nearly) all steps to perform the proteomics network analysis and interpretation. 
+
+Hopefully this workflow is very _flexible_. But not so much that it false apart when being held up against the sun.
 
 
 ## IO
