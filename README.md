@@ -46,4 +46,4 @@ snakemake
 
 
 ---
-<img width="907" alt="Screenshot 2024-08-14 at 23 32 17" src="https://github.com/user-attachments/assets/a9bc126d-f788-43f6-9d1c-ceff7d2ca498">
+<img width="666" alt="Screenshot 2024-08-14 at 23 32 17" src="https://github.com/user-attachments/assets/a9bc126d-f788-43f6-9d1c-ceff7d2ca498">
