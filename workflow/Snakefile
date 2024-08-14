@@ -27,10 +27,7 @@ rule all:
     input:
         # Annotate proteome
         "results/annotation/annotation.emapper.annotations",
-        
-        
-
-        
+            
         # Proteomics
         # Filter
         "results/filtered/proteome_intensities.rds",
@@ -57,6 +54,8 @@ rule all:
         
         # TODO:
         # Species contribution to modules.
+        [f"results/ig/{i}/wgcna/inspected/species_table/species_table.rds" for i in config["imputation_group"].keys()],
+        
         # WGCNA holomodules 
         # Alluvial, proteomics on genomes
         # PE, proteomics on genomes
@@ -208,8 +207,27 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
 
 
 
-# rule wgcna_species: # Species per module. Crucial for interpreting modules.
 
+
+# rule wgcna_species: # Species per module. Crucial for interpreting modules.
+rule wgcna_species:
+    input:
+        metadata = config["principal_input_sample_metadata"],
+        groups = "results/ig/{imputation_group}/imputed/groups.tsv",
+        #annotations = "results/annotation/annotation.emapper.annotations",
+        wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
+        proteome2genome = config["principal_input_proteome2genome_mapping"],
+    output:
+        species_table = "results/ig/{imputation_group}/wgcna/inspected/species_table/species_table.rds",
+    conda: "envs/r-clusterprofiler.yaml"
+    script: "scripts/wgcna_species.R"
+
+
+
+
+# So far I have the modules. I can correlate these to phenotypes and across the rumen-wall-liver axis.
+# I know the enriched for pathways of these modules
+# And I know the species that make up each module.
 
 
 
