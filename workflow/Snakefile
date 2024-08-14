@@ -48,11 +48,15 @@ rule all:
         # compute modules
         [f"results/ig/{i}/wgcna/modules.rds" for i in config["imputation_group"].keys()],
         # Inspect modules
-        [f"results/ig/{i}/wgcna/inspected/module2module.rds" for i in config["imputation_group"].keys()]
+        [f"results/ig/{i}/wgcna/inspected/module2module.rds" for i in config["imputation_group"].keys()],
         # Pathway enrichment on modules
         
-        # TODO:
         # PE on WGCNA
+        [f"results/ig/{i}/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds" for i in config["imputation_group"].keys()],
+        
+        
+        # TODO:
+        # Species contribution to modules.
         # WGCNA holomodules 
         # Alluvial, proteomics on genomes
         # PE, proteomics on genomes
@@ -204,6 +208,7 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
 
 
 
+# rule wgcna_species: # Species per module. Crucial for interpreting modules.
 
 
 

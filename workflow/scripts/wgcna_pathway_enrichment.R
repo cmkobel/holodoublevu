@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # rm(list = ls())
 library(tidyverse)
-library(WGCNA)
+library(clusterProfiler)
 source("workflow/scripts/utils.R")
 
 # --- Inputs
@@ -78,21 +78,66 @@ if (annotations$protein %>% length() != annotations$protein %>%
 # Count the number of proteins from each pathway in each module.
 # Jeg fik lige en interessant ide. Hvorfor er det egentlig at jeg har fokuseret så meget på at kigge på enrichment? Hvad med at kigge på antal ortologer for en pathway istedet? Er det ikke lige så godt som at køre en masse hypergeometriske test, bare at se hvad der er til stede? det er i hvert fald hurtigere. Og antallet måske også lettere at fortolke end en p-værdi?
 
+# Geneset
+term2gene <- kegg_data %>%
+    select(term = pathway, gene = ko_id)
+term2gene %>% handful()
 
-a = net_results[[1]]$net$colors %>%
-    as_tibble(rownames = "protein") %>%
-    rename(module = value) %>%
-    left_join(annotations)
 
-# extract pathways
+# Add the annotation to the proteins of a single layer.
+# This makes sense, since one protein is only present in one module.
 
-a %>%
-    select(protein, KEGG_Pathway) %>%
-    drop_na(KEGG_Pathway) %>%
-    mutate(li = str_split(KEGG_Pathway, ",")) %>%
-    unnest(li) %>%
-    filter(str_detect(li, "^ko")) %>% # remove map references. Use ko instead.
-    count(li) %>%
-    identity()
-    arrange(desc(n)) %>%
- 
+
+
+pe_analyses <- lapply( # one group, e.g. "D, slaughter, 1"
+    groups %>%
+        rowwise() %>%
+        group_split(), # Debug i = (groups %>% rowwise() %>% group_split())[[1]]
+    function(i) {
+        message("group ", paste(i, collapse = ", "))
+
+
+        group_annotated <- net_results[[i$group_index]]$net$colors %>%
+            as_tibble(rownames = "protein") %>%
+            rename(module = value) %>%
+            left_join(annotations) %>%
+            group_by(module)
+
+
+        lapply( # One module e.g. "0"
+            group_annotated %>% group_split(), # Debug: # j = (group_annotated %>% group_split())[[1]]
+            function(j) {
+                message("group ", paste(i, collapse = ", "), ", module ", j$module[[1]])
+                layer_ready <- j %>%
+                    select(protein, module, KEGG_ko) %>%
+                    drop_na(KEGG_ko) %>%
+                    mutate(ko_extraction = str_split(KEGG_ko, ",")) %>%
+                    unnest(ko_extraction) %>%
+                    mutate(ko = str_extract(ko_extraction, "ko:(K\\d+)", group = 1)) %>%
+                    select(-KEGG_ko, -ko_extraction)
+
+
+                # Ready to perform enrichment analysis.
+
+                gene <- layer_ready %>%
+                    drop_na(ko) %>%
+                    pull(ko)
+
+                clusterProfiler::enricher(
+                    gene,
+                    TERM2GENE = term2gene
+                ) %>%
+                    as_tibble() %>%
+                    select(-Description) %>% # Redundant with ID
+                    rename(pathway = ID) %>%
+                    mutate(
+                        group_index = i$group_index,
+                        module = layer_ready$module[[1]]
+                    ) %>%
+                    relocate(group_index, module)
+            }
+        ) %>% bind_rows()
+    }
+) %>% bind_rows()
+
+pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
