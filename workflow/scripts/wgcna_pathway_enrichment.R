@@ -87,6 +87,7 @@ term2gene %>% handful()
 # Add the annotation to the proteins of a single layer.
 # This makes sense, since one protein is only present in one module.
 
+# This is the most fucked up un-debuggable nested lapply on group_split()-ted tables I've ever done.
 
 
 pe_analyses <- lapply( # one group, e.g. "D, slaughter, 1"
@@ -141,3 +142,21 @@ pe_analyses <- lapply( # one group, e.g. "D, slaughter, 1"
 ) %>% bind_rows()
 
 pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
+
+
+# --- plots
+
+# Simple tile showing pathways and modules
+
+
+lapply(
+    pe_analyses %>%
+        group_by(group_index),
+    function(i) {
+
+        slice_sample(n = 1000) %>%
+        ggplot(aes(module, pathway, fill = p.adjust)) +
+        facet_wrap(~group_index) +
+        geom_tile()
+
+    }
