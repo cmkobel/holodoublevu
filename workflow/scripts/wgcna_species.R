@@ -97,7 +97,22 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
 
         group_taxonomized
     }
-) %>% bind_rows()
+) %>%
+    bind_rows() %>%
+    # Clean up binomial name. (As it isn't otherwise uniform throughout the different databases.)
+    mutate(
+        tax_binomial = case_when(
+            is.na(tax_species) ~ paste(tax_genus, "s??p."), # Unknown species
+            tax_genus == str_sub(tax_species, 1, str_length(tax_genus)) ~ paste(tax_species), # Coded in genus only?
+            TRUE ~ paste(tax_genus, tax_species) # Regular
+        )
+    ) %>%
+    mutate(str_length(tax_genus))
+
+species_table %>%
+    select(tax_genus, tax_species, tax_binomial) %>%
+    handful()
+
 
 species_table %>%
     write_rds_and_tsv(output_species_table_file)
@@ -114,8 +129,10 @@ lapply(
         group_by(group_index) %>%
         group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
     function(i) {
-        i %>%
-            count(module, tax_kingdom, tax_family) %>%
+        j <- i %>%
+            count(module, tax_kingdom, tax_family)
+
+        j %>%
             ggplot(aes(module, tax_family, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85) +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
@@ -129,19 +146,25 @@ lapply(
                 subtitle = "Count of proteins per module, for taxonomical groups"
             )
 
-        ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = 10, width = 10)
+        height_multiplier <- j %>%
+            count(tax_family) %>%
+            nrow()
+
+        ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = (height_multiplier / 7) + 2, width = 10)
     }
 )
 
 
-# 1 genus
+# 2 genus
 lapply(
     species_table %>%
         group_by(group_index) %>%
         group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
     function(i) {
-        i %>%
-            count(module, tax_kingdom, tax_genus) %>%
+        j <- i %>%
+            count(module, tax_kingdom, tax_genus)
+
+        j %>%
             ggplot(aes(module, tax_genus, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85) +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
@@ -155,6 +178,44 @@ lapply(
                 subtitle = "Count of proteins per module, for taxonomical groups"
             )
 
-        ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = 24, width = 10)
+        height_multiplier <- j %>%
+            count(tax_genus) %>%
+            nrow()
+
+
+        ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = (height_multiplier / 7) + 2, width = 10)
+    }
+)
+
+
+# 3 binomial
+lapply(
+    species_table %>%
+        group_by(group_index) %>%
+        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
+    function(i) {
+        j <- i %>%
+            count(module, tax_kingdom, tax_binomial)
+
+        j %>%
+            ggplot(aes(module, tax_binomial, fill = n)) +
+            scale_fill_viridis_b(begin = 0, end = .85) +
+            ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
+            geom_tile() +
+            theme_bw() +
+            labs(
+                title = paste(
+                    groups %>% filter(group_index == i$group_index[[1]]),
+                    collapse = ", "
+                ),
+                subtitle = "Count of proteins per module, for taxonomical groups"
+            )
+
+        height_multiplier <- j %>%
+            count(tax_binomial) %>%
+            nrow()
+
+
+        ggsave(generate_fig_name(output_species_table_file, "tax_binomial"), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
     }
 )

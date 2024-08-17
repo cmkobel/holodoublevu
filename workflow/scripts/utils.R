@@ -39,10 +39,15 @@ supacow_paste_sample <- function(df, keep_columns = FALSE) {
 }
 
 
-handful <- function(df, .return = F, n = 7) {
+handful <- function(df, .return = F, n = 7, seed = NULL) {
     # Shows a random handful op items. For safety it doesn't return anything (by default).
 
     message("Showing ", n, " random rows:")
+
+    if (!is.null(seed)) {
+        message("Using specific seed for reproducibility.")
+        set.seed(seed)
+    }
 
     if ("data.frame" %in% class(df)) {
         slice_sample(df, n = n) %>%
@@ -104,7 +109,7 @@ figno <- function() {
 generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pdf") {
     rv <- paste0(dirname(adjacent_file), "/", title, "_", figno(), ".", extension)
 
-    message("Plotting to file", rv)
+    message("Plotting to file ", rv)
     dir.create(dirname(rv), showWarnings = F)
 
     rv
