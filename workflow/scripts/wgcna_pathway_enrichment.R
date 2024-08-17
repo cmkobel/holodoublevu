@@ -161,10 +161,12 @@ lapply(
         group_by(group_index) %>%
         group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[1]],
     function(i) {
-        i %>%
+        j <- i %>%
             left_join(pathway_hierarchy, by = "pathway") %>%
             # slice_sample(n = 100) %>%
-            filter(!str_detect(pathway_class, "^09160|09190")) %>%
+            filter(!str_detect(pathway_class, "^09160|09190")) # Remove boring pathways (human diseases and whatnot)
+
+        j %>%
             ggplot(aes(module, pathway, fill = p.adjust)) +
             # facet_wrap(~pathway_class, space = "free") +
             scale_fill_viridis_b(begin = 0, end = .85) +
@@ -179,6 +181,10 @@ lapply(
                 subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported."
             )
 
-        ggsave(generate_fig_name(output_pathway_enrichment_file, "tile"), height = 22, width = 12)
+        height_multiplier <- j %>%
+            count(pathway) %>%
+            nrow()
+
+        ggsave(generate_fig_name(output_pathway_enrichment_file, "pathway_tile"), height = (height_multiplier / 7) + 2, width = 12)
     }
 )

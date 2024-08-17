@@ -223,6 +223,12 @@ rule wgcna_species:
     script: "scripts/wgcna_species.R"
 
 
+rule pdf:
+    shell: """
+        find results -name "*.pdf" > pdfs.txt
+        zip -q pdfs.zip -@ < pdfs.txt
+        echo "pdfs are ready"
+    """
 
 
 # So far I have the modules. I can correlate these to phenotypes and across the rumen-wall-liver axis.

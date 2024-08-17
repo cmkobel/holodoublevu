@@ -65,7 +65,7 @@ lapply(
                 select(-index) %>%
                 deframe(),
             # main = paste(i$title, "(block 1 only)"),
-            main = "what",
+            main = "Dendro",
             dendroLabels = F
         )
         dev.off()
