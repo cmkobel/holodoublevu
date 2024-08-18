@@ -114,3 +114,9 @@ generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pd
 
     rv
 }
+
+
+# height <- 12
+# width <- 12
+# ggsave(generate_fig_name(output_pathway_enrichment_file, "pathway_tile"), height = (height_multiplier / 7) + 2, width = width)
+# pdf(generate_fig_name(output_rds_file, "dendro"), height = (height_multiplier / 7) + 2, width = width)
