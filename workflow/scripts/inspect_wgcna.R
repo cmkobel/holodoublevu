@@ -2,6 +2,7 @@
 # rm(list = ls())
 library(tidyverse)
 library(WGCNA)
+library(patchwork)
 source("workflow/scripts/utils.R")
 
 # --- Inputs
@@ -10,6 +11,7 @@ metadata_file <- snakemake@input[["metadata"]] %>% as.character()
 net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 groups_file = snakemake@input[["groups"]] %>% as.character()
 output_rds_file <- snakemake@output[["mod2mod"]] %>% as.character()
+
 
 # For debugging
 if (F) {
@@ -43,6 +45,32 @@ net_results[[1]]$net$colors %>%
 net_results[[1]]$net$MEs %>%
     as_tibble(rownames = "sample")
 
+# --- Proteins per module
+
+
+lapply(
+    net_results,
+    function(i) {
+        layer_stats <- i$net$colors %>%
+            as_tibble(rownames = "protein") %>%
+            rename(module = value) %>%
+            count(module)
+
+        hist_ <- layer_stats %>%
+            ggplot(aes(n)) +
+            geom_histogram() +
+            labs(title = "Proteins per module", subtitle = "Histogram", x = "n [proteins]", y = "count [modules]")
+
+        column_ <- layer_stats %>%
+            ggplot(aes(module, n)) +
+            geom_col() +
+            labs(subtitle = "Column plot", y = "n [proteins]")
+
+        (hist_ / column_)
+
+        ggsave(generate_fig_name(output_rds_file, paste_("count", filter(groups, group_index == i$group_index)$presentable)))
+    }
+)
 
 
 # --- Basic dendro viz
@@ -53,7 +81,8 @@ i <- net_results[[1]]
 lapply(
     net_results,
     function(i) {
-        pdf(generate_fig_name(output_rds_file, "dendro"), height = height, width = width)
+        pdf(generate_fig_name(output_rds_file, paste_("dendro", filter(groups, group_index == i$group_index)$presentable)), height = height, width = width)
+
         plotDendroAndColors(
             i$net$dendrograms[[1]],
             tibble(index = i$net$blockGenes[[1]]) %>%
@@ -64,8 +93,8 @@ lapply(
                 ) %>%
                 select(-index) %>%
                 deframe(),
-            # main = paste(i$title, "(block 1 only)"),
-            main = "Dendro",
+            main = paste(filter(groups, group_index == i$group_index)$presentable, "(block 1 only)"),
+            # main = "Dendro (block 1 only)",
             dendroLabels = F
         )
         dev.off()
@@ -78,22 +107,6 @@ lapply(
 
 
 # --- pheatmaps
-p <- lapply(
-    net_results, # [1], # select one only with [n] where in is in 1:6.
-    function(x) {
-        pdf(generate_fig_name(output_rds_file, "pheatmap"), height = height, width = width)
-        pheatmap::pheatmap(
-            x$net$MEs,
-            # main = paste0("Module Eigengenes\n", keys_presentable %>% filter(group_index == x$group_index) %>% pull(presentable) %>% unique())
-            main = paste(
-                groups %>% filter(group_index == i$group_index),
-                collapse = ", "
-            )
-        )
-        dev.off()
-        # ggsave(generate_fig_name(output_rds_file, "pheatmap"))
-    }
-)
 
 
 
@@ -103,7 +116,9 @@ p <- lapply(
 lapply(
     net_results, # [1], # select one only with [n] where in is in 1:6.
     function(i) {
-        pdf(generate_fig_name(output_rds_file, "me_pheatmap"), height = height, width = width)
+        pdf(generate_fig_name(output_rds_file, paste_("me", filter(groups, group_index == i$group_index)$presentable)), height = height, width = width)
+
+
         pheatmap::pheatmap(
             i$net$MEs,
             main = paste(
@@ -130,20 +145,21 @@ layer_liver <- filter(groups, source == "L") %>% pull(group_index)
 
 
 
-wanted_keys = list(
+wanted_keys <- list(
     # Aberdeen Angus X
-    list(A = layer_digesta, B = layer_wall), # digesta x wall
-    list(A = layer_digesta, B = layer_liver), # digesta x liver
-    list(A = layer_liver, B = layer_wall) # liver x wall
+    list(A = layer_digesta, B = layer_wall, plot_title = "digestaXwall"), # digesta x wall
+    list(A = layer_digesta, B = layer_liver, plot_title = "digestaXliver"), # digesta x liver
+    list(A = layer_liver, B = layer_wall, plot_title = "liverXwall") # liver x wall
 )
 
 
 bicor_module2module <- lapply(
     wanted_keys,
-    function(x) {
-        pdf(generate_fig_name(output_rds_file, "mod2mod"), height = height, width = width)
+    function(i) { # i = list(A = 1, B = 7) # DEBUG
+        message(i$plot_title)
+        pdf(generate_fig_name(output_rds_file, paste_("axis", groups$imputation_group[[1]], i$plot_title)), height = height, width = width)
 
-        i <- x # i = list(A = 1, B = 7) # DEBUG
+
 
         return_value <- list()
 
@@ -197,23 +213,11 @@ bicor_module2module <- lapply(
             left_hand_side,
             right_hand_side
         )
-        message("this far")
 
 
+        presentable_A <- filter(groups, group_index == i$A)$presentable
+        presentable_B <- filter(groups, group_index == i$B)$presentable
 
-
-        presentable_A <- paste(
-            groups %>% filter(group_index == i$A),
-            collapse = ", "
-        )
-        presentable_B <- paste(
-            groups %>% filter(group_index == i$B),
-            collapse = ", "
-        )
-
-
-
-        message("3")
         pheatmap::pheatmap(
             bicor_results$bicor,
             display_numbers = bicor_results$p %>% gtools::stars.pval(),
@@ -275,40 +279,41 @@ metadata_numeric <- metadata %>%
 
 # You will get problems with duplicate keys if you run this with the tube samples.
 
-net_results[groups %>%
-    filter(collection != "tube") %>%
-    pull(group_index)] %>%
-    lapply(
-        function(x) {
-            pdf(generate_fig_name(output_rds_file, "pheno"), height = height, width = width)
 
-            presentable <- paste(
-                groups %>% filter(group_index == x$group_index),
-                collapse = ", "
-            )
+lapply(
+    net_results[groups %>%
+        filter(collection != "tube") %>%
+        pull(group_index)],
+    function(x) {
+        pdf(generate_fig_name(output_rds_file, paste_("pheno", filter(groups, group_index == x$group_index)$presentable)), height = height, width = width)
 
-            bicor_result <- bicorAndPvalue(
-                x = x$net$MEs,
-                y = x$net$MEs %>%
-                    rownames_to_column("sample") %>%
-                    select(sample) %>%
-                    transmute(animal = str_sub(sample, 2, 3)) %>%
-                    left_join(
-                        metadata_numeric,
-                        by = "animal"
-                    ) %>%
-                    select(where(~ var(.x, na.rm = T) > 0)) %>%
-                    column_to_rownames("animal"),
-                use = "pairwise.complete.obs"
-            )
-            pheatmap::pheatmap(
-                mat = bicor_result$bicor,
-                display_numbers = bicor_result$p %>%
-                    gtools::stars.pval(),
-                main = presentable
-            ) %>%
-                print()
+        presentable <- paste(
+            groups %>% filter(group_index == x$group_index),
+            collapse = ", "
+        )
 
-            dev.off()
-        }
-    )
+        bicor_result <- bicorAndPvalue(
+            x = x$net$MEs,
+            y = x$net$MEs %>%
+                rownames_to_column("sample") %>%
+                select(sample) %>%
+                transmute(animal = str_sub(sample, 2, 3)) %>%
+                left_join(
+                    metadata_numeric,
+                    by = "animal"
+                ) %>%
+                select(where(~ var(.x, na.rm = T) > 0)) %>%
+                column_to_rownames("animal"),
+            use = "pairwise.complete.obs"
+        )
+        pheatmap::pheatmap(
+            mat = bicor_result$bicor,
+            display_numbers = bicor_result$p %>%
+                gtools::stars.pval(),
+            main = presentable
+        ) %>%
+            print()
+
+        dev.off()
+    }
+)

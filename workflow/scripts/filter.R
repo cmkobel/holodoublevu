@@ -8,8 +8,17 @@ source("workflow/scripts/utils.R")
 
 # --- Inputs
 
-proteome_intensities_raw <- read_rds(snakemake@input[["proteome_intensities"]] %>% as.character())
-# proteome_intensities_raw <- read_rds("/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/00_uniform_data/proteomics_long_v2.rds")
+proteome_intensities_file <- snakemake@input[["proteome_intensities"]] %>% as.character()
+output_filtered_file <- snakemake@output[["filtered"]] %>% as.character()
+
+
+if (F) {
+    proteome_intensities_file <- "/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/00_uniform_data/proteomics_long_v2.rds"
+    output_filtered_file <- "results/filtered/proteome_intensities.rds"
+}
+
+proteome_intensities_raw = read_rds(proteome_intensities_file)
+
 
 # --- Clean
 
@@ -51,6 +60,7 @@ threshold_n_D_tube <- 0
 threshold_n_L_slaughter <- 0
 threshold_n_W_slaughter = 1000
 
+
 filter1 <- proteome_intensities %>%
     group_by(source, animal, collection) %>%
     summarize(n = n(), sum = sum(intensity)) %>%
@@ -65,9 +75,12 @@ filter1 %>%
     ggplot(aes(n, sum / n, color = pass_filter, label = animal)) +
     facet_wrap(~ paste(source, collection), scales = "free") +
     geom_text(size = 2, hjust = 0, vjust = 0, color = "black") +
-    geom_point(alpha = 0.3)
+    geom_point(alpha = 0.3) +
+    labs(title = "Filtering threshold")
 
-ggsave("results/filtered/plots/plot1.png", create.dir = T)
+# ggsave("results/filtered/plots/plot1.png", create.dir = T)
+ggsave(generate_fig_name(output_filtered_file, "filter"), create.dir = T)
+
 
 
 
@@ -95,4 +108,4 @@ final <- proteome_intensities_filtered %>%
 final %>% handful()
 
 final %>%
-    write_rds_and_tsv(snakemake@output[["filtered"]] %>% as.character())
+    write_rds_and_tsv(output_filtered_file)

@@ -134,7 +134,7 @@ rule validate_inputs:
 # Now I can just "copy-paste" my scripts from the 26_proteomics_analysis into here and everything will be clean in no time. :) Now I'll drive home to my family in Copenhagen <3
 
 
-rule filter_proteomics:
+rule filter:
     """ Remove outlier samples. """
     input:
         metadata = config["principal_input_sample_metadata"],
@@ -148,7 +148,7 @@ rule filter_proteomics:
 
     
 # rule impute
-rule impute_proteomics:
+rule impute:
     """ Impute missing values. """
     input:
         metadata = config["principal_input_sample_metadata"],
@@ -157,6 +157,7 @@ rule impute_proteomics:
         imputed = "results/ig/{imputation_group}/imputed/proteome_intensities.rds",
         groups = "results/ig/{imputation_group}/imputed/groups.tsv" # This is a specific table per 
     params:
+        imputation_group = lambda wildcards: wildcards.imputation_group,
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
     conda: "envs/r-missranger.yaml"
     script: "scripts/impute.R"
@@ -172,6 +173,7 @@ rule wgcna_modules:
     output:
         wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds"
     params:
+        imputation_group = lambda wildcards: wildcards.imputation_group,
         samples = lambda wildcards: config["imputation_group"][wildcards.imputation_group]
     conda: "envs/r-wgcna.yaml"
     script: "scripts/wgcna_modules.R"
@@ -186,6 +188,8 @@ rule inspect_wgcna:
         groups = "results/ig/{imputation_group}/imputed/groups.tsv",
     output: 
         mod2mod = "results/ig/{imputation_group}/wgcna/inspected/module2module.rds"
+    params:
+        imputation_group = lambda wildcards: wildcards.imputation_group,
     conda: "envs/r-wgcna.yaml"
     script: "scripts/inspect_wgcna.R"
     
@@ -224,9 +228,10 @@ rule wgcna_species:
 
 
 rule pdf:
+    output: 
+        zip = "holodoublevu_pdfs.zip"
     shell: """
-        find results -name "*.pdf" > pdfs.txt
-        zip -q pdfs.zip -@ < pdfs.txt
+        find results -name "*.pdf" | zip -q {output.zip} -@
         echo "pdfs are ready"
     """
 
@@ -238,9 +243,10 @@ rule pdf:
 
 
 
-
-
-
+# TODO
+# - report fraction of proteins with mapped annotation
+# - report fraction of proteins with mapped tax id
+# - report quality of imputation? stats?
 # rule proteome_genomic_pathway_enrichment: # Good to understand Velmas results with.
 # rule wgcna_holomodules: # for network visualization
 # rule visualize_alluvial: # We already have this, so not super important.

@@ -107,7 +107,7 @@ figno <- function() {
 
 
 generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pdf") {
-    rv <- paste0(dirname(adjacent_file), "/", title, "_", figno(), ".", extension)
+    rv <- paste0(dirname(adjacent_file), "/", title, "_f", figno(), ".", extension)
 
     message("Plotting to file ", rv)
     dir.create(dirname(rv), showWarnings = F)
@@ -118,5 +118,24 @@ generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pd
 
 # height <- 12
 # width <- 12
-# ggsave(generate_fig_name(output_pathway_enrichment_file, "pathway_tile"), height = (height_multiplier / 7) + 2, width = width)
-# pdf(generate_fig_name(output_rds_file, "dendro"), height = (height_multiplier / 7) + 2, width = width)
+
+# pdf(generate_fig_name(output_file, paste("hclust", pastecomma(filter( groups, group_index == i$group_index)))))
+# ggsave(generate_fig_name(output_pathway_enrichment_file, paste("title", pastecomma(filter(groups, group_index == i$group_index))), height = (height_multiplier / 7) + 2, width = width, create.dir = T))
+
+
+
+pastecomma <- function(...) {
+    paste(
+        ...,
+        collapse = ", ",
+        sep = "_"
+    )
+}
+
+paste_ <- function(...) {
+    paste(
+        ...,
+        collapse = "_",
+        sep = "_"
+    )
+}

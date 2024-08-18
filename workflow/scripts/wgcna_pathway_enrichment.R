@@ -185,6 +185,6 @@ lapply(
             count(pathway) %>%
             nrow()
 
-        ggsave(generate_fig_name(output_pathway_enrichment_file, "pathway_tile"), height = (height_multiplier / 7) + 2, width = 12)
+        ggsave(generate_fig_name(output_pathway_enrichment_file, paste_("pathway", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 12)
     }
 )

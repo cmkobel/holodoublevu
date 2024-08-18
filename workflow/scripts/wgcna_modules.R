@@ -6,19 +6,31 @@ source("workflow/scripts/utils.R")
 
 # --- Inputs
 
-metadata <- read_tsv(snakemake@input[["metadata"]] %>% as.character())
-proteome_intensities <- read_rds(snakemake@input[["imputed"]] %>% as.character())
-groups <- read_tsv(snakemake@input[["groups"]] %>% as.character())
+metadata_file <- snakemake@input[["metadata"]] %>% as.character()
+proteome_intensities_file <- snakemake@input[["imputed"]] %>% as.character()
+groups_file <- snakemake@input[["groups"]] %>% as.character()
 samples <- snakemake@params[["samples"]]
+
+output_wgcna_modules_file = snakemake@output[["wgcna_modules"]] %>% as.character()
 
 
 # For debugging
 if (F) {
-    metadata <- read_tsv("resources/metadata_v1.6.tsv")
-    proteome_intensities <- read_rds("results/ig/luing/imputed/proteome_intensities.rds")
-    groups <- read_tsv("results/ig/luing/imputed/groups.tsv")
+    metadata_file <- "resources/metadata_v1.6.tsv"
+    proteome_intensities_file <- "results/ig/luing/imputed/proteome_intensities.rds"
+    groups_file <- "results/ig/luing/imputed/groups.tsv"
     samples <- c("D06T6S", "D08T6S", "D16T6S", "D25T6S", "D28T1S", "D28T2S", "D28T3S", "D28T4S", "D28T5S", "D28T6S", "D29T6S", "D35T6S", "D51T1S", "D51T2S", "D51T3S", "D51T4S", "D51T5S", "D51T6S", "D60T6S", "D61T6S", "D76T6S", "L06T6R", "L08T6R", "L16T6R", "L25T6R", "L28T6R", "L29T6R", "L35T6R", "L42T6R", "L51T6R", "L60T6R", "L61T6R", "L76T6R", "W06T6R", "W08T6R", "W16T6R", "W25T6R", "W29T6R", "W35T6R", "W42T6R", "W51T6R", "W60T6R", "W61T6R", "W76T6R") # luing example
+
+    output_wgcna_modules_file <- "results/ig/{imputation_group}/wgcna/modules.rds"
 }
+
+
+metadata <- read_tsv(metadata_file)
+proteome_intensities <- read_rds(proteome_intensities_file)
+groups <- read_tsv(groups_file)
+
+
+
 
 # --- Housekeeping
 
@@ -81,19 +93,20 @@ hclust_naive <- lapply(
     }
 )
 
-pdf(file = paste0(as.character(snakemake@output[["wgcna_modules"]]), "_hclust.pdf"))
+
 lapply(
     hclust_naive,
     function(i) {
+        pdf(generate_fig_name(output_wgcna_modules_file, paste_("hclust", filter(groups, group_index == i$group_index)$presentable)))
+
         plotDendroAndColors(
             i$sample_tree,
             i$trait_colors_data %>% numbers2colors(),
             groupLabels = names(i$trait_colors_data),
-            main = paste(
-                groups %>% filter(group_index == i$group_index),
-                collapse = ", "
-            )
+            main = filter(groups, group_index == i$group_index)$presentable
         )
+
+        dev.off()
     }
 )
 
@@ -141,7 +154,8 @@ thresholds <- lapply(
 
 
 # pst plots
-pdf(file = paste0(as.character(snakemake@output[["wgcna_modules"]]), "_pst.pdf"))
+pdf(generate_fig_name(output_wgcna_modules_file, "pst"))
+
 lapply(
     thresholds,
     function(i) {
@@ -156,15 +170,14 @@ lapply(
             geom_hline(yintercept = .8, linetype = "dashed", color = "grey", alpha = 0.5) +
             theme() +
             labs(
-                title = paste(
-                    groups %>% filter(group_index == i$group_index),
-                    collapse = ", "
-                ),
+                title = filter(groups, group_index == i$group_index)$presentable,
                 subtitle = "WGCNA::pickSoftThreshold",
                 caption = paste0("powerEstimate = ", i$pst$powerEstimate)
             )
     }
 )
+
+dev.off()
 
 groups_estimate <- groups %>%
     rowwise() %>%
@@ -188,7 +201,7 @@ i <- (proteome_intensities %>% # Debug friendly setup.
     group_by(group_index) %>%
     group_split())[[1]]
 
-net_results <- thresholds <- lapply(
+net_results <- lapply(
     (proteome_intensities %>%
         group_by(group_index) %>%
         group_split()),

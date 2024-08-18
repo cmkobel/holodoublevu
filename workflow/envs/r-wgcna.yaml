@@ -9,5 +9,6 @@ dependencies:
   - r-wgcna
   - r-pheatmap
   - r-gtools
+  - r-patchwork
   
   

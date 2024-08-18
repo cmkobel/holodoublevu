@@ -8,26 +8,33 @@ source("workflow/scripts/utils.R")
 
 threshold_present_in_number_of_samples_to_keep_in_imputation <- 4
 
-metadata <- read_tsv(snakemake@input[["metadata"]] %>% as.character())
-# metadata <- read_tsv("resources/metadata_v1.6.tsv")
 
-proteome_intensities_raw <- read_rds(snakemake@input[["filtered"]] %>% as.character())
-# proteome_intensities_raw <- read_rds("results/filtered/proteome_intensities.rds")
-
-
+metadata_file = snakemake@input[["metadata"]] %>% as.character()
+proteome_intensities_file = snakemake@input[["filtered"]] %>% as.character()
 samples <- snakemake@params[["samples"]]
-# samples <- c("D06T6S", "D08T6S", "D16T6S", "D25T6S", "D28T1S", "D28T2S", "D28T3S", "D28T4S", "D28T5S", "D28T6S", "D29T6S", "D35T6S", "D51T1S", "D51T2S", "D51T3S", "D51T4S", "D51T5S", "D51T6S", "D60T6S", "D61T6S", "D76T6S", "L06T6R", "L08T6R", "L16T6R", "L25T6R", "L28T6R", "L29T6R", "L35T6R", "L42T6R", "L51T6R", "L60T6R", "L61T6R", "L76T6R", "W06T6R", "W08T6R", "W16T6R", "W25T6R", "W29T6R", "W35T6R", "W42T6R", "W51T6R", "W60T6R", "W61T6R", "W76T6R") # luing example
+imputation_group_title <- snakemake@params[["imputation_group"]]
+
+if (F) {
+    metadata_file <- "resources/metadata_v1.6.tsv"
+    proteome_intensities_file <- "results/filtered/proteome_intensities.rds"
+    samples <- c("D06T6S", "D08T6S", "D16T6S", "D25T6S", "D28T1S", "D28T2S", "D28T3S", "D28T4S", "D28T5S", "D28T6S", "D29T6S", "D35T6S", "D51T1S", "D51T2S", "D51T3S", "D51T4S", "D51T5S", "D51T6S", "D60T6S", "D61T6S", "D76T6S", "L06T6R", "L08T6R", "L16T6R", "L25T6R", "L28T6R", "L29T6R", "L35T6R", "L42T6R", "L51T6R", "L60T6R", "L61T6R", "L76T6R", "W06T6R", "W08T6R", "W16T6R", "W25T6R", "W29T6R", "W35T6R", "W42T6R", "W51T6R", "W60T6R", "W61T6R", "W76T6R") # luing example
+    imputation_group_title <- c("luing")
+}
+
+metadata <- read_tsv(metadata_file)
+proteome_intensities_raw <- read_rds(proteome_intensities_file)
+
 
 paste("number of samples", length(samples))
 paste(samples)
 
-imputation_group <- tibble(sample = samples, included = T)
-imputation_group %>% handful()
+imputation_group_samples <- tibble(sample = samples, included = T)
+imputation_group_samples %>% handful()
 # --- Housekeeping
 
 # Check that the wanted breeds are included.
 paste("Breeds within selected samples:")
-imputation_group %>%
+imputation_group_samples %>%
     supacow_separate_sample() %>%
     left_join(metadata, by = "animal") %>%
     distinct(breed)
@@ -35,7 +42,7 @@ imputation_group %>%
 message("th")
 # Define proteome intensities only with the samples wanted.
 proteome_intensities <- proteome_intensities_raw %>%
-    left_join(imputation_group, by = "sample") %>%
+    left_join(imputation_group_samples, by = "sample") %>%
     filter(included) %>%
     select(-included) %>%
     supacow_separate_sample() %>%
@@ -49,11 +56,19 @@ proteome_intensities %>%
 
 # --- Group by source and collection and remove samples that are not in at least 4
 
-groups = proteome_intensities %>%
+groups <- proteome_intensities %>%
     group_by(source, collection) %>%
     summarize() %>%
     ungroup() %>%
-    mutate(group_index = 1:n())
+    mutate(group_index = 1:n()) %>%
+    mutate(imputation_group = imputation_group_title) %>%
+    relocate(group_index, imputation_group) %>%
+    mutate(presentable = paste0(imputation_group, "_g", group_index, "_", source, "_", collection))
+
+groups
+groups %>%
+    write_tsv(snakemake@output[["groups"]] %>% as.character())
+
 
 message("These are the groups and their indexes which we're going to use when imputing.")
 groups
@@ -110,6 +125,3 @@ imputed %>%
 
 imputed %>%
     write_rds_and_tsv(snakemake@output[["imputed"]] %>% as.character())
-
-groups %>%
-    write_tsv(snakemake@output[["groups"]] %>% as.character())

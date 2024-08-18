@@ -150,7 +150,8 @@ lapply(
             count(tax_family) %>%
             nrow()
 
-        ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = (height_multiplier / 7) + 2, width = 10)
+        # ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = (height_multiplier / 7) + 2, width = 10)
+        ggsave(generate_fig_name(output_species_table_file, paste_("tax_family", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
     }
 )
 
@@ -183,7 +184,8 @@ lapply(
             nrow()
 
 
-        ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = (height_multiplier / 7) + 2, width = 10)
+        # ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = (height_multiplier / 7) + 2, width = 10)
+        ggsave(generate_fig_name(output_species_table_file, paste_("tax_genus", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
     }
 )
 
@@ -195,12 +197,12 @@ lapply(
         group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
     function(i) {
         j <- i %>%
-            count(module, tax_kingdom, tax_binomial)
+            count(module, tax_intermediate = paste(tax_kingdom, tax_phylum, sep = ", "), tax_binomial)
 
         j %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85) +
-            ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
+            ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
@@ -216,6 +218,6 @@ lapply(
             nrow()
 
 
-        ggsave(generate_fig_name(output_species_table_file, "tax_binomial"), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
+        ggsave(generate_fig_name(output_species_table_file, paste_("tax_binomial", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
     }
 )
