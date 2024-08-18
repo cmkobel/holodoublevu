@@ -64,7 +64,7 @@ lapply(
         column_ <- layer_stats %>%
             ggplot(aes(module, n)) +
             geom_col() +
-            labs(subtitle = "Column plot", y = "n [proteins]")
+            labs(subtitle = "Column plot", x = "module name", y = "n [proteins]")
 
         (hist_ / column_)
 
