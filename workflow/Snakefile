@@ -249,11 +249,19 @@ rule wgcna_species:
 # rule wgcna_holomodules: # for network visualization
 # rule visualize_alluvial: # We already have this, so not super important.
 
+rule pdf:
+    shell: """
+        echo "refresh pdf pack"
+    """
 
 pack_pdf = """
+    test -f holodoublevu_pdfs.zip && rm holodoublevu_pdfs.zip
     find results -name "*.pdf" | zip -q holodoublevu_pdfs.zip -@
     echo "pdfs are ready"
 """
 
 onsuccess:
+    shell(pack_pdf)
+    
+onerror: 
     shell(pack_pdf)

@@ -223,14 +223,17 @@ net_results <- lapply(
         message("current power ", current_power)
 
         # Should probably try this with corType = "bicor" instead of the default corType = "pearson"
+        # settings 1:
         net <- blockwiseModules(
             datExpr = wide %>% column_to_rownames("sample"),
             power = current_power,
             networkType = "signed",
             TOMType = "signed",
-            # corType = "bicor", # Wanxin's idea.
-            numericLabels = T # T if you want to manually recolor.
-            # reassignThreshold = 0 # Torgeir's suggestion
+            corType = "bicor", # Wanxin's idea.
+            deepSplit = 1, # def 2
+            detectCutHeight = 0.97,# .995, .98 gave 53
+            numericLabels = T, # T if you want to manually recolor.
+            reassignThreshold = 0 # Torgeir's suggestion # 53 modules before writing this
         )
 
         list(

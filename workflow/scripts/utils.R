@@ -107,7 +107,7 @@ figno <- function() {
 
 
 generate_fig_name <- function(adjacent_file, title = "untitled", extension = "pdf") {
-    rv <- paste0(dirname(adjacent_file), "/", title, "_f", figno(), ".", extension)
+    rv <- paste0(dirname(adjacent_file), "/", title, "_fig", figno(), ".", extension)
 
     message("Plotting to file ", rv)
     dir.create(dirname(rv), showWarnings = F)

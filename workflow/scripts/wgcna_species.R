@@ -16,10 +16,10 @@ proteome2genome_file <- snakemake@input[["proteome2genome"]] %>% as.character()
 output_species_table_file <- snakemake@output[["species_table"]] %>% as.character()
 
 # For debugging
-if (F) {
+if (interactive()) {
     metadata_file <- "resources/metadata_v1.6.tsv"
-    groups_file <- "results/ig/luing/imputed/groups.tsv"
-    net_results_file <- "results/ig/luing/wgcna/modules.rds"
+    groups_file <- "results/ig/both/imputed/groups.tsv"
+    net_results_file <- "results/ig/both/wgcna/modules.rds"
     proteome2genome_file <- "~/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
     # annotations_file <- "results/annotation/annotation.emapper.annotations"
 
@@ -51,8 +51,7 @@ handful(net_results[[1]]$net$colors)
 handful(proteome2genome_raw)
 
 proteome2genome_raw %>%
-    head() %>%
-    view()
+    head()
 
 proteome2genome = proteome2genome_raw %>%
     select(protein, sample, starts_with("tax_"))
@@ -99,6 +98,28 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
     }
 ) %>%
     bind_rows() %>%
+    
+    
+    # This is to fix up some incoherencies that should rather be fixed in the prot2genome mapping.
+    # If family is missing, take order, etc.
+    mutate(
+        tax_family = coalesce(tax_family, tax_order),
+        tax_genus = coalesce(tax_genus, tax_family)
+        ) %>%
+    
+    # Another incoherence is that some dbB's are missing the bovine tax id. This should also be fixed outside in the original source file.
+    # Eukaryota Animalia Chordata Mammalia Artiodactyla Bovidae Bos taurus Bos taurus
+    mutate(
+        tax_domain  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "coweyEukaryota", TRUE ~ tax_domain ),
+        tax_kingdom = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Animalia", TRUE ~ tax_kingdom),
+        tax_phylum  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Chordata", TRUE ~ tax_phylum ),
+        tax_class   = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Mammalia", TRUE ~ tax_class  ),
+        tax_order   = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Artiodactyla", TRUE ~ tax_order  ),
+        tax_family  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Bovidae", TRUE ~ tax_family ),
+        tax_genus   = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Bos", TRUE ~ tax_genus  ),
+        tax_species = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "taurus", TRUE ~ tax_species)
+    ) %>%
+    
     # Clean up binomial name. (As it isn't otherwise uniform throughout the different databases.)
     mutate(
         tax_binomial = case_when(
@@ -106,16 +127,17 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
             tax_genus == str_sub(tax_species, 1, str_length(tax_genus)) ~ paste(tax_species), # Coded in genus only?
             TRUE ~ paste(tax_genus, tax_species) # Regular
         )
-    ) %>%
-    mutate(str_length(tax_genus))
+    )
 
 species_table %>%
     select(tax_genus, tax_species, tax_binomial) %>%
     handful()
 
 
-species_table %>%
-    write_rds_and_tsv(output_species_table_file)
+if (!interactive()) {
+    species_table %>%
+        write_rds_and_tsv(output_species_table_file)
+}
 
 
 # --- Visualize
@@ -131,8 +153,16 @@ lapply(
     function(i) {
         j <- i %>%
             count(module, tax_kingdom, tax_family)
+        
+        dist_ = j %>%
+            pivot_wider(id_cols = module, names_from = tax_family, values_from = n, values_fill = 0) %>%
+            drop_na(module) %>%
+            column_to_rownames(var = "module") %>%
+            dist() %>%
+            hclust()
 
         j %>%
+            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_family, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
@@ -141,7 +171,12 @@ lapply(
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
+            ) + 
+            theme(
+                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
+        
+        
 
         height_multiplier <- j %>%
             count(tax_family) %>%
@@ -161,8 +196,16 @@ lapply(
     function(i) {
         j <- i %>%
             count(module, tax_kingdom, tax_genus)
+        
+        dist_ = j %>%
+            pivot_wider(id_cols = module, names_from = tax_genus, values_from = n, values_fill = 0) %>%
+            drop_na(module) %>%
+            column_to_rownames(var = "module") %>%
+            dist() %>%
+            hclust()
 
         j %>%
+            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_genus, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
@@ -171,6 +214,9 @@ lapply(
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
+            ) +
+            theme(
+                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
 
         height_multiplier <- j %>%
@@ -192,8 +238,17 @@ lapply(
     function(i) {
         j <- i %>%
             count(module, tax_intermediate = paste(tax_kingdom, tax_phylum, sep = ", "), tax_binomial)
-
+        
+        dist_ = j %>%
+            pivot_wider(id_cols = module, names_from = tax_binomial, values_from = n, values_fill = 0) %>%
+            #pivot_wider(id_cols = module, names_from = tax_binomial, values_from = n, values_fn = list) %>%
+            drop_na(module) %>% # 
+            column_to_rownames(var = "module") %>%
+            dist(method = "binary") %>% # "euclidean"27 (def), "maximum"28, "manhattan", "canberra"30, "binary"25 or "minkowski"26.
+            hclust()
+        
         j %>%
+            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
@@ -202,6 +257,9 @@ lapply(
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
+            ) +
+            theme(
+                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
 
         height_multiplier <- j %>%
@@ -210,5 +268,6 @@ lapply(
 
 
         ggsave(generate_fig_name(output_species_table_file, paste_("tax_binomial", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
+        
     }
 )
