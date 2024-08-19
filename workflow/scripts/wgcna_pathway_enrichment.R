@@ -22,7 +22,7 @@ if (F) {
     annotations_file <- "results/annotation/annotation.emapper.annotations"
     kegg_data_file <- "resources/kegg_data.tsv"
 
-    output_pathway_enrichment_file <- "results/ig/aberdeen/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds"
+    output_pathway_enrichment_file <- "results/ig/aberdeen/wgcna/pathway_enrichment/pathway_enrichment.rds"
 
     figno_var <<- 1000
 }

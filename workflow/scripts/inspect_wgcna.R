@@ -50,21 +50,39 @@ net_results[[1]]$net$MEs %>%
 
 lapply(
     net_results,
-    function(i) {
-        layer_stats <- i$net$colors %>%
+    function(i) { # i = net_results[[1]]
+        
+        
+        colors <- i$net$colors %>%
             as_tibble(rownames = "protein") %>%
-            rename(module = value) %>%
+            rename(module = value)
+            
+        layer_stats = colors %>%
             count(module)
+        
+        
 
         hist_ <- layer_stats %>%
             ggplot(aes(n)) +
             geom_histogram() +
-            labs(title = "Proteins per module", subtitle = "Histogram", x = "n [proteins]", y = "count [modules]")
+            labs(
+                title = paste("Proteins per module:", filter(groups, group_index == i$group_index)$presentable), 
+                subtitle = "Histogram", 
+                x = "n [proteins]", 
+                y = "count [modules]"
+            )
+                
+        
 
         column_ <- layer_stats %>%
             ggplot(aes(module, n)) +
             geom_col() +
-            labs(subtitle = "Column plot", x = "module name", y = "n [proteins]")
+            labs(
+                subtitle = "Column plot", x = "module name", y = "n [proteins]",
+                caption = paste("Number of proteins:", nrow(colors), "\nCount of modules:", colors$module %>% unique() %>% length())
+            )
+        
+                
 
         (hist_ / column_)
 

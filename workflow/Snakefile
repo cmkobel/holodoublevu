@@ -49,16 +49,21 @@ rule all:
         # Pathway enrichment on modules
         
         # PE on WGCNA
-        [f"results/ig/{i}/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds" for i in config["imputation_group"].keys()],
+        [f"results/ig/{i}/wgcna/pathway_enrichment/pathway_enrichment.rds" for i in config["imputation_group"].keys()],
+        
+        
+        # Species contribution to modules.
+        [f"results/ig/{i}/wgcna/species_table/species_table.rds" for i in config["imputation_group"].keys()],
+        # Pack pdfs together for portability of results
+
         
         
         # TODO:
-        # Species contribution to modules.
-        [f"results/ig/{i}/wgcna/inspected/species_table/species_table.rds" for i in config["imputation_group"].keys()],
-        
-        # WGCNA holomodules 
+        # WGCNA holomodules, export to cytoscape for visualization.
         # Alluvial, proteomics on genomes
         # PE, proteomics on genomes
+        
+        
         
         
         
@@ -204,7 +209,7 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
         wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
         kegg_data = config["kegg_data"],
     output:
-        pathway_enrichment = "results/ig/{imputation_group}/wgcna/inspected/pathway_enrichment/pathway_enrichment.rds",
+        pathway_enrichment = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds",
     conda: "envs/r-clusterprofiler.yaml"
     script: "scripts/wgcna_pathway_enrichment.R"
 
@@ -222,18 +227,11 @@ rule wgcna_species:
         wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
         proteome2genome = config["principal_input_proteome2genome_mapping"],
     output:
-        species_table = "results/ig/{imputation_group}/wgcna/inspected/species_table/species_table.rds",
+        species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
     conda: "envs/r-clusterprofiler.yaml"
     script: "scripts/wgcna_species.R"
 
 
-rule pdf:
-    output: 
-        zip = "holodoublevu_pdfs.zip"
-    shell: """
-        find results -name "*.pdf" | zip -q {output.zip} -@
-        echo "pdfs are ready"
-    """
 
 
 # So far I have the modules. I can correlate these to phenotypes and across the rumen-wall-liver axis.
@@ -250,3 +248,12 @@ rule pdf:
 # rule proteome_genomic_pathway_enrichment: # Good to understand Velmas results with.
 # rule wgcna_holomodules: # for network visualization
 # rule visualize_alluvial: # We already have this, so not super important.
+
+
+pack_pdf = """
+    find results -name "*.pdf" | zip -q holodoublevu_pdfs.zip -@
+    echo "pdfs are ready"
+"""
+
+onsuccess:
+    shell(pack_pdf)

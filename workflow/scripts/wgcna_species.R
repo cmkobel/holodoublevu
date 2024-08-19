@@ -20,10 +20,10 @@ if (F) {
     metadata_file <- "resources/metadata_v1.6.tsv"
     groups_file <- "results/ig/luing/imputed/groups.tsv"
     net_results_file <- "results/ig/luing/wgcna/modules.rds"
-    proteome2genome_file <- "/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
+    proteome2genome_file <- "~/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
     # annotations_file <- "results/annotation/annotation.emapper.annotations"
 
-    output_species_table_file <- "results/ig/aberdeen/wgcna/inspected/species_table/species_table.rds"
+    output_species_table_file <- "results/ig/aberdeen/wgcna/species_table/species_table.rds"
 
     figno_var <<- 1000
 }
@@ -102,7 +102,7 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
     # Clean up binomial name. (As it isn't otherwise uniform throughout the different databases.)
     mutate(
         tax_binomial = case_when(
-            is.na(tax_species) ~ paste(tax_genus, "s??p."), # Unknown species
+            is.na(tax_species) ~ paste(tax_genus, "sp."), # Unknown species
             tax_genus == str_sub(tax_species, 1, str_length(tax_genus)) ~ paste(tax_species), # Coded in genus only?
             TRUE ~ paste(tax_genus, tax_species) # Regular
         )
@@ -134,15 +134,12 @@ lapply(
 
         j %>%
             ggplot(aes(module, tax_family, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85) +
+            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
-                title = paste(
-                    groups %>% filter(group_index == i$group_index[[1]]),
-                    collapse = ", "
-                ),
+                title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
             )
 
@@ -167,15 +164,12 @@ lapply(
 
         j %>%
             ggplot(aes(module, tax_genus, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85) +
+            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
-                title = paste(
-                    groups %>% filter(group_index == i$group_index[[1]]),
-                    collapse = ", "
-                ),
+                title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
             )
 
@@ -201,15 +195,12 @@ lapply(
 
         j %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85) +
+            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
-                title = paste(
-                    groups %>% filter(group_index == i$group_index[[1]]),
-                    collapse = ", "
-                ),
+                title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups"
             )
 
