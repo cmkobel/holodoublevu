@@ -15,10 +15,10 @@ kegg_data_file = snakemake@input[["kegg_data"]] %>% as.character()
 output_pathway_enrichment_file <- snakemake@output[["pathway_enrichment"]] %>% as.character()
 
 # For debugging
-if (F) {
+if (interactive()) {
     metadata_file <- "resources/metadata_v1.6.tsv"
-    groups_file <- "results/ig/luing/imputed/groups.tsv"
-    net_results_file <- "results/ig/luing/wgcna/modules.rds"
+    groups_file <- "results/ig/both/imputed/groups.tsv"
+    net_results_file <- "results/ig/both/wgcna/modules.rds"
     annotations_file <- "results/annotation/annotation.emapper.annotations"
     kegg_data_file <- "resources/kegg_data.tsv"
 
@@ -144,7 +144,9 @@ pe_analyses <- lapply( # one group, e.g. "D, slaughter, 1"
     }
 ) %>% bind_rows()
 
-pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
+if (!interactive()) {
+    pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
+}
 
 
 # --- plots
@@ -153,20 +155,33 @@ pe_analyses %>% write_rds_and_tsv(output_pathway_enrichment_file)
 
 
 pathway_hierarchy <- kegg_data %>%
-    distinct(pathway_class = class, pathway_group = group, pathway)
+    distinct(pathway_class = class, pathway_group = group, pathway) %>%
+    arrange(pathway_class, pathway_group, pathway)
 handful(pathway_hierarchy)
 
 lapply(
     pe_analyses %>%
         group_by(group_index) %>%
-        group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[1]],
+        group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[1]]
     function(i) {
         j <- i %>%
             left_join(pathway_hierarchy, by = "pathway") %>%
             # slice_sample(n = 100) %>%
             filter(!str_detect(pathway_class, "^09160|09190")) # Remove boring pathways (human diseases and whatnot)
+        
+        dist_ = j %>%
+            pivot_wider(id_cols = module, names_from = pathway, values_from = p.adjust, values_fill = 0) %>%
+            drop_na(module) %>%
+            column_to_rownames(var = "module") %>%
+            dist(method = "binary") %>%
+            hclust()
 
+        
+    
+        
         j %>%
+            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>% # sort modules on distance
+            mutate(pathway = factor(pathway, levels = pathway_hierarchy$pathway)) %>% # sort pathways hierarchically
             ggplot(aes(module, pathway, fill = p.adjust)) +
             # facet_wrap(~pathway_class, space = "free") +
             scale_fill_viridis_b(begin = 0, end = .85) +
@@ -178,7 +193,8 @@ lapply(
                     groups %>% filter(group_index == i$group_index[[1]]),
                     collapse = ", "
                 ),
-                subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported."
+                subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported.",
+                caption = "Modules sorted by binary distance."
             )
 
         height_multiplier <- j %>%

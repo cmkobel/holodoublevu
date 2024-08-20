@@ -200,7 +200,7 @@ rule inspect_wgcna:
     
     
 
-
+# I'm gonna split these in two
 rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
     input:
         metadata = config["principal_input_sample_metadata"],

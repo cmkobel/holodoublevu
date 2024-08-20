@@ -158,7 +158,7 @@ lapply(
             pivot_wider(id_cols = module, names_from = tax_family, values_from = n, values_fill = 0) %>%
             drop_na(module) %>%
             column_to_rownames(var = "module") %>%
-            dist() %>%
+            dist(method = "binary") %>%
             hclust()
 
         j %>%
@@ -170,7 +170,8 @@ lapply(
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups"
+                subtitle = "Count of proteins per module, for taxonomical groups",
+                caption = "Modules sorted by binary distance."
             ) + 
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
@@ -201,7 +202,7 @@ lapply(
             pivot_wider(id_cols = module, names_from = tax_genus, values_from = n, values_fill = 0) %>%
             drop_na(module) %>%
             column_to_rownames(var = "module") %>%
-            dist() %>%
+            dist(method = "binary") %>%
             hclust()
 
         j %>%
@@ -213,7 +214,8 @@ lapply(
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups"
+                subtitle = "Count of proteins per module, for taxonomical groups",
+                caption = "Modules sorted by binary distance."
             ) +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
@@ -256,7 +258,8 @@ lapply(
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups"
+                subtitle = "Count of proteins per module, for taxonomical groups",
+                caption = "Modules sorted by binary distance."
             ) +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
