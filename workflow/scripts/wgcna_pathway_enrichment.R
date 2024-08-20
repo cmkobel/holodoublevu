@@ -195,6 +195,9 @@ lapply(
                 ),
                 subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported.",
                 caption = "Modules sorted by binary distance."
+            ) + 
+            theme(
+                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
 
         height_multiplier <- j %>%

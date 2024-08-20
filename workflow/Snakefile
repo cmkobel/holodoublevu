@@ -200,7 +200,7 @@ rule inspect_wgcna:
     
     
 
-# I'm gonna split these in two
+
 rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
     input:
         metadata = config["principal_input_sample_metadata"],
@@ -212,9 +212,6 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
         pathway_enrichment = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds",
     conda: "envs/r-clusterprofiler.yaml"
     script: "scripts/wgcna_pathway_enrichment.R"
-
-
-
 
 
 
@@ -242,6 +239,10 @@ rule wgcna_species:
 
 
 # TODO
+# - priority:
+#    - highlight top proteins in each module. (inspect_wgcna)
+#    - alternative species viz with distance ordering.
+#    - alternative pathway viz with distance ordering.
 # - report fraction of proteins with mapped annotation
 # - report fraction of proteins with mapped tax id
 # - report quality of imputation? stats?
