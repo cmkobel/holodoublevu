@@ -226,7 +226,9 @@ net_results <- lapply(
             select(-group_index)
 
 
-        current_power <- current_group$threshold_final
+        #current_power <- current_group$threshold_final
+        current_power <- current_group$threshold_estimate # I think these are actually pretty alright.
+        
         message("current power ", current_power)
 
         datExpr = wide %>% column_to_rownames("sample")
@@ -261,7 +263,7 @@ net_results <- lapply(
         list(
             group_index = current_group_index,
             net = net,
-            kME = datKME,
+            kME = datKME, # I'm actually not using this one anymore as I prefer calculating it _with_ pvalues. But it is still here because why not..
             datExpr = datExpr
 
             # numeric_net = numeric_net,

@@ -129,6 +129,11 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
         )
     )
 
+
+# save this file because now it is clean
+species_table %>%
+    write_rds_and_tsv(paste0(dirname(output_species_table_file), "/species_table.rds"))
+
 species_table %>%
     select(tax_genus, tax_species, tax_binomial) %>%
     handful()

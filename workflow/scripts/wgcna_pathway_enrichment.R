@@ -69,6 +69,9 @@ annotations <- annotations_all %>%
     select(-database_short, -protein_short, -query)
 
 
+annotations %>%
+    write_rds_and_tsv(paste0(dirname(output_pathway_enrichment_file), "/annotations.rds"))
+
 
 if (annotations$protein %>% length() != annotations$protein %>%
     unique() %>%
