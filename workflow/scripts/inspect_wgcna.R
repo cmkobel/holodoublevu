@@ -14,11 +14,11 @@ output_rds_file <- snakemake@output[["mod2mod"]] %>% as.character()
 
 
 # For debugging
-if (F) {
+if (interactive()) {
     metadata_file <- "resources/metadata_v1.6.tsv"
-    net_results_file <- "results/ig/luing/wgcna/modules.rds"
-    groups_file <- "results/ig/luing/imputed/groups.tsv"
-    output_rds_file <- "results/ig/luing/wgcna/inspected/module2module.rds"
+    net_results_file <- "results/ig/both/wgcna/modules.rds"
+    groups_file <- "results/ig/both/imputed/groups.tsv"
+    output_rds_file <- "results/ig/both/wgcna/inspected/module2module.rds"
     figno_var <<- 1000
 }
 
@@ -94,10 +94,10 @@ lapply(
 # --- Basic dendro viz
 
 
-i <- net_results[[1]]
+
 
 lapply(
-    net_results,
+    net_results, # i <- net_results[[1]]
     function(i) {
         pdf(generate_fig_name(output_rds_file, paste_("dendro", filter(groups, group_index == i$group_index)$presentable)), height = height, width = width)
 

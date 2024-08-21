@@ -240,7 +240,7 @@ rule wgcna_species:
 
 # TODO
 # - priority:
-#    - highlight top proteins in each module. (inspect_wgcna)
+#    - highlight top proteins in each module. (inspect_wgcna): gene sig. & module membership.
 #    - alternative species viz with distance ordering.
 #    - alternative pathway viz with distance ordering.
 # - report fraction of proteins with mapped annotation
