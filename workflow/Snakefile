@@ -212,6 +212,7 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
         kegg_data = config["kegg_data"],
     output:
         pathway_enrichment = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds",
+        annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/annotations_clean.rds", # This is just a clean version of the annotations input. If I had time to generalize this workflow, I would make this the input..
     conda: "envs/r-clusterprofiler.yaml"
     script: "scripts/wgcna_pathway_enrichment.R"
 
@@ -234,9 +235,29 @@ rule wgcna_species:
 # module_membership and trait_significance:
 # Adding species table and annotation quickly in place:
 rule mm_ts:
-    metadata = config["principal_input_sample_metadata"],
-    groups = "results/ig/{imputation_group}/imputed/groups.tsv",
-    species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
+    input:
+        metadata = config["principal_input_sample_metadata"],
+        groups = "results/ig/{imputation_group}/imputed/groups.tsv",
+        species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
+        annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds"
+    conda: "envs/r-tidyverse.yaml"
+    shell: """
+    
+        Rscript -e '''
+            
+            library(tidyverse)
+            
+            metadata = read_tsv("{input.metadata}")
+            
+            groups = read_tsv("{input.groups}")
+            
+            species_table = read_rds("{input.species_table}")
+            
+            annotations = read_rds("{input.annotations_clean}")
+            
+            
+        '''
+    """
     
 
 
