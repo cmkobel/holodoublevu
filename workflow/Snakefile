@@ -56,7 +56,7 @@ rule all:
         [f"results/ig/{i}/wgcna/species_table/species_table.rds" for i in config["imputation_group"].keys()],
         # Pack pdfs together for portability of results
 
-        
+        [f"results/ig/{i}/wgcna/inspect/mm_ts.rds" for i in config["imputation_group"].keys()],
         
         # TODO:
         # WGCNA holomodules, export to cytoscape for visualization.
@@ -237,21 +237,42 @@ rule mm_ts:
     input:
         metadata = config["principal_input_sample_metadata"],
         groups = "results/ig/{imputation_group}/imputed/groups.tsv",
-        module_membership_trait_significance = "results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/module_membership_trait_significance.rds"
+        module_membership_trait_significance = "results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/module_membership_trait_significance.rds",
         species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
-        annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds"
+        annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/annotations_clean.rds"
+    output: 
+        mm_ts = "results/ig/{imputation_group}/wgcna/inspect/mm_ts.rds"
     conda: "envs/r-tidyverse.yaml"
     shell: """
     
         Rscript -e '''
             
             library(tidyverse)
+            source("workflow/scripts/utils.R")
             
             metadata = read_tsv("{input.metadata}")
             groups = read_tsv("{input.groups}")
             species_table = read_rds("{input.species_table}")
             annotations = read_rds("{input.annotations_clean}")
-            module_membership_trait_significance = read_rds("{input.module_membership_trait_significance_clean}")
+            module_membership_trait_significance = read_rds("{input.module_membership_trait_significance}")
+            
+            
+            # metadata %>% handful()
+            # groups %>% handful()
+            species_table %>% handful()
+            #annotations %>% handful()
+            module_membership_trait_significance %>% handful()
+            
+            final = module_membership_trait_significance %>%
+                left_join(annotations, by = "protein") %>%
+                
+                left_join(species_table, by = "protein") %>%
+                
+                identity()
+                
+            final %>%
+                write_rds_and_tsv("{output.mm_ts}")
+            
             
             
             
