@@ -338,14 +338,12 @@ metadata_numeric <- metadata %>%
 
 stopifnot(all(metadata$animal == metadata_numeric$animal))
 
-asoeht = bind_cols(
+bind_cols(
     metadata,
     metadata_numeric %>%
         rename_at(vars(-animal), function(x) {paste0(x, "_numeric")}) %>%
         select(-animal)
-)
-
-asoeht %>%
+) %>%
     pivot_longer(-animal, values_transform = as.character) %>%
     mutate("_numeric" = str_detect(name, "_numeric$")) %>%
     mutate(name = str_remove(name, "_numeric$")) %>% 
@@ -355,8 +353,6 @@ asoeht %>%
     distinct() %>%
     arrange(name) %>% 
     write_tsv(paste0(dirname(output_rds_file), "/trait_key.tsv"))
-
-
 
 
 
