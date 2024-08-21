@@ -11,6 +11,7 @@ metadata_file <- snakemake@input[["metadata"]] %>% as.character()
 net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 groups_file = snakemake@input[["groups"]] %>% as.character()
 output_rds_file <- snakemake@output[["mod2mod"]] %>% as.character()
+output_trait_connectivity_file = snakemake@output[["trait_connectivity"]] %>% as.character()
 
 
 # For debugging
@@ -19,6 +20,7 @@ if (interactive()) {
     net_results_file <- "results/ig/both/wgcna/modules.rds"
     groups_file <- "results/ig/both/imputed/groups.tsv"
     output_rds_file <- "results/ig/both/wgcna/inspected/module2module.rds"
+    output_trait_connectivity_file = "results/ig/both/wgcna/inspected/trait_connectivity/trait_connectivity.rds"
     figno_var <<- 1000
 }
 
@@ -36,6 +38,7 @@ groups <- read_tsv(groups_file)
 metadata %>% handful()
 net_results[[1]] %>% str()
 net_results[[1]]$net$colors %>% table()
+net_results[[1]]$datExpr %>% handful()
 
 net_results[[1]]$net$colors %>%
     enframe(name = "protein_name_long", value = "module") %>%
@@ -259,6 +262,7 @@ bicor_module2module <- lapply(
         grid::grid.text(presentable_A, x = -0.07, rot = 90, gp = grid::gpar(fontsize = 12))
 
 
+        dev.off()
         list(
             "A" = i$A,
             "B" = i$B,
@@ -266,13 +270,56 @@ bicor_module2module <- lapply(
             "presentable_B" = presentable_B,
             "bicor" = bicor_results
         )
-        dev.off()
     }
 )
 
 
-bicor_module2module %>%
-    write_rds(output_rds_file)
+if (!interactive()) {
+    bicor_module2module %>%
+        write_rds(output_rds_file)
+}
+
+
+# We can extract significant module pairs from the bicor_module2module (axis) table holo module pairs or axis module pairs? axis couple? holo module couple?
+
+    
+axis_couples = base::lapply(
+    bicor_module2module,
+    function(x) { # x = bicor_module2module[1]
+    
+        x$bicor$p %>% # p, the Student p-values corresponding to the calculated correlations
+            as_tibble(rownames = "module_A") %>% 
+            
+            pivot_longer(-module_A, names_to = "module_B", values_to = "pvalue") %>%  
+            
+            filter(pvalue < 0.05) %>% 
+            # This is stupid, but it works. "Tidy data", right? And then I can't fuck it up by having the wrong "wanted_keys" table laying around in a corner.
+            mutate(
+                module_A_index = x$A,
+                module_B_index = x$B,
+                presentable_A = x$bicor$presentable_A,
+                presentable_B = x$bicor$presentable_B
+            ) %>% 
+            
+            # Add the bicor values. This was the simplest way I could think of. 
+            left_join(
+                x$bicor$bicor %>% # bicor, the calculated correlations
+                    as_tibble(rownames = "module_A") %>% 
+                    pivot_longer(-module_A, names_to = "module_B", values_to = "bicor"),
+                by = c("module_A", "module_B")
+            ) %>% 
+            identity()
+    }
+)  %>% 
+bind_rows() %>% 
+
+# Since the names (i.e. "ME3", "ME4") are overlapping between sources, we must include the group index in the module name.
+mutate(
+    module_A_complete = paste(module_A_index, module_A, sep = "|"),
+    module_B_complete = paste(module_B_index, module_B, sep = "|"),
+    
+) 
+
 
 
 # --- Correlating to phenotypes
@@ -297,18 +344,12 @@ metadata_numeric <- metadata %>%
 
 # You will get problems with duplicate keys if you run this with the tube samples.
 
+net_results[filter(groups, collection != "tube")$group_index]
 
-lapply(
-    net_results[groups %>%
-        filter(collection != "tube") %>%
-        pull(group_index)],
+pheno = lapply(
+    net_results[filter(groups, collection != "tube")$group_index], # x = net_results[filter(groups, collection != "tube")$group_index][[1]]
     function(x) {
         pdf(generate_fig_name(output_rds_file, paste_("pheno", filter(groups, group_index == x$group_index)$presentable)), height = height, width = width)
-
-        presentable <- paste(
-            groups %>% filter(group_index == x$group_index),
-            collapse = ", "
-        )
 
         bicor_result <- bicorAndPvalue(
             x = x$net$MEs,
@@ -324,14 +365,169 @@ lapply(
                 column_to_rownames("animal"),
             use = "pairwise.complete.obs"
         )
+        
         pheatmap::pheatmap(
             mat = bicor_result$bicor,
             display_numbers = bicor_result$p %>%
                 gtools::stars.pval(),
-            main = presentable
+            main = filter(groups, group_index == x$group_index)$presentable
         ) %>%
             print()
 
         dev.off()
+        
+        list(
+            bicor = bicor_result$bicor,
+            p = bicor_result$p,
+            group_index = x$group_index
+        )
+    }
+)
+
+# I want to extract the modules that are correlated with a trait
+
+
+trait_modules_of_interest = lapply(
+    pheno,
+    function(i) { # i = pheno[[1]]
+    a = i$bicor %>% as_tibble(rownames = "module") %>%
+        pivot_longer(-module, names_to = "trait", values_to = "coefficient")
+    b = i$p %>% as_tibble(rownames = "module") %>%
+        pivot_longer(-module, names_to = "trait", values_to = "pvalue")
+    
+    stopifnot(all(a$module == b$module))
+    stopifnot(all(a$trait == b$trait))
+    
+    bind_cols(a, b %>% select(pvalue)) %>%
+        filter(pvalue <= 0.05) %>%
+        mutate(group_index = i$group_index) %>%
+        relocate(group_index, trait) %>%
+        arrange(group_index, trait)
+    
+    }
+) %>% bind_rows()
+
+trait_modules_of_interest %>%
+    write_rds_and_tsv(output_trait_connectivity_file)
+
+
+# Module membership and gene significance.
+
+traits_modules = lapply(
+    net_results, # x = net_results[[1]]
+    function(x) {
+        
+        # Do not process the tube samples.
+        if (filter(groups, group_index == x$group_index)$collection == "tube") {
+            return(NULL)
+        }
+        
+        # Correlate proteins and traits
+        protein_trait_raw = corAndPvalue(
+            x$datExpr, # samples by proteins
+            x$datExpr %>% # samples by traits
+                as_tibble(rownames = "sample") %>%
+                select(sample) %>% 
+                transmute(animal = str_sub(sample, 2, 3)) %>%
+                left_join(
+                    metadata_numeric,
+                    by = "animal"
+                )
+            
+        )$cor
+        
+        
+        
+        
+        
+        
+        protein_trait = protein_trait_raw$cor %>%
+            as_tibble(rownames = "protein") %>%
+            rename_at(vars(2:last_col()), function(x) {paste0("trait_", x)})
+        
+        protein_kme = x$kME %>%
+            as_tibble(rownames = "protein")
+        
+        stopifnot(protein_trait$protein == protein_kme$protein )
+        
+        gene_membership = bind_cols(protein_kme, protein_trait %>% select(-protein))
+        
+        list(
+            group_index = x$group_index,
+            gene_membership = gene_membership
+        )
+    }
+)
+
+
+# Plot each module that is significantly correlated to a trait.
+lapply(
+    trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[1]]
+    function(i) { 
+        
+        traits_modules[[i$group_index]]$gene_membership %>%
+            select(protein, module = paste0("k", i$module), trait = paste0("trait_", i$trait)) %>%
+            ggplot(aes(module, trait, label = protein)) + 
+            geom_point() + 
+            geom_smooth(method = "lm") +
+            #geom_text(size = 2, alpha = 0.5) +
+            labs(
+                title = filter(groups, group_index == i$group_index),
+                subtitle = "Connectivity and gene significance",
+                x = paste(i$module, "module connectivity"), 
+                y = paste(i$trait, "trait correlation")
+            )
+        
+        presentable_ = paste(filter(groups, group_index == i$group_index)$presentable, i$trait, i$module, collapse = "_", sep = "_")
+        
+        ggsave(generate_fig_name(output_trait_connectivity_file, paste_("trait_gene", presentable_)), height = height, width = width)
+        
+        
+    }
+    
+)
+traits_modules[[3]]$group_index
+groups
+traits_modules[[3]]$gene_membership %>%
+    select(protein, kME2, trait_vsplit) %>%
+    ggplot(aes((kME2), (trait_vsplit), label = protein)) + 
+    geom_point() + 
+    geom_smooth(method = "lm") +
+    #geom_text(size = 2, alpha = 0.5) +
+    labs(
+        title = "Connectivity and gene significance")
+
+ggsave("thisplot.pdf")
+
+
+
+# Will be coded automatically "as in holomodules"
+modules_of_interest = tribble(
+    ~imputation_group, ~group_index, ~module,
+    "both", 4, "8"
+    
+)
+
+modules_of_interest %>%
+    filter(imputation_group == groups$imputation_group[[1]]) %>%
+    roww
+    
+
+lapply(
+    traits_modules,
+    function(i) { # i = traits_modules[1]
+        
+        message(i$group_index)
+        
+        i$gene_membership %>%
+            select(protein, kME2, trait_vsplit) %>%
+            ggplot(aes((kME2), (trait_vsplit), label = protein)) + 
+            geom_point() + 
+            geom_smooth(method = "lm") +
+            #geom_text(size = 2, alpha = 0.5) +
+            labs(
+                title = filter(groups, group_index == i$group_index),
+                subtitle = "Connectivity and gene significance"
+            )
     }
 )

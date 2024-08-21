@@ -229,12 +229,13 @@ net_results <- lapply(
         current_power <- current_group$threshold_final
         message("current power ", current_power)
 
+        datExpr = wide %>% column_to_rownames("sample")
         
         message("Blockwise module construction ...")
         # Should probably try this with corType = "bicor" instead of the default corType = "pearson"
         # settings 1:
         net <- blockwiseModules(
-            datExpr = wide %>% column_to_rownames("sample"),
+            datExpr = datExpr,
             power = current_power,
             networkType = "signed",
             TOMType = "signed",
@@ -252,7 +253,7 @@ net_results <- lapply(
         message("Computing module membership ...")
         # Also compute the signedKME (module membership)
         datKME = signedKME(
-            datExpr = wide %>% column_to_rownames("sample"),
+            datExpr = datExpr,
             datME = net$MEs,
             outputColumnName = "kME")
 
@@ -260,7 +261,8 @@ net_results <- lapply(
         list(
             group_index = current_group_index,
             net = net,
-            kME = datKME
+            kME = datKME,
+            datExpr = datExpr
 
             # numeric_net = numeric_net,
             # new_words = new_words
