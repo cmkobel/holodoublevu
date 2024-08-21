@@ -56,7 +56,7 @@ rule all:
         [f"results/ig/{i}/wgcna/species_table/species_table.rds" for i in config["imputation_group"].keys()],
         # Pack pdfs together for portability of results
 
-        [f"results/ig/{i}/wgcna/inspect/mm_ts.rds" for i in config["imputation_group"].keys()],
+        [f"results/ig/{ig}/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.rds" for i in config["imputation_group"].keys()],
         
         # TODO:
         # WGCNA holomodules, export to cytoscape for visualization.
@@ -241,7 +241,7 @@ rule mm_ts:
         species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
         annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/annotations_clean.rds"
     output: 
-        mm_ts = "results/ig/{imputation_group}/wgcna/inspect/mm_ts.rds"
+        mm_ts = "results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.rds"
     conda: "envs/r-tidyverse.yaml"
     shell: """
     
