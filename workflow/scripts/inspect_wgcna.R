@@ -330,12 +330,31 @@ mutate(
 # By converting this before the for loop of each layer, I know that the factors will be comparable between layers. Makes visual interpretation easier.
 metadata_numeric <- metadata %>%
     mutate(across(
-        # c(everything(), -animal),
-        -animal,
+        !is.numeric & !matches("animal"),
         ~ .x %>%
             as.factor() %>%
             as.numeric()
     ))
+
+stopifnot(all(metadata$animal == metadata_numeric$animal))
+
+asoeht = bind_cols(
+    metadata,
+    metadata_numeric %>%
+        rename_at(vars(-animal), function(x) {paste0(x, "_numeric")}) %>%
+        select(-animal)
+)
+
+asoeht %>%
+    pivot_longer(-animal, values_transform = as.character) %>%
+    mutate("_numeric" = str_detect(name, "_numeric$")) %>%
+    mutate(name = str_remove(name, "_numeric$")) %>% 
+    pivot_wider(id_cols = c(animal, name), names_from = `_numeric`, values_from = value) %>%
+    select(-animal) %>%
+    filter(`TRUE` != `FALSE`) %>% # The ones that were already numeric
+    distinct() %>%
+    arrange(name) %>% 
+    write_tsv(paste0(dirname(output_rds_file), "/trait_key.tsv"))
 
 
 
@@ -422,6 +441,10 @@ traits_modules = lapply(
             return(NULL)
         }
         
+        
+        # Correlate proteins and 
+        
+        
         # Correlate proteins and traits
         protein_trait_raw = corAndPvalue(
             x$datExpr, # samples by proteins
@@ -434,27 +457,28 @@ traits_modules = lapply(
                     by = "animal"
                 )
             
-        )$cor
+        )
         
-        
-        
-        
-        
-        
-        protein_trait = protein_trait_raw$cor %>%
+        a = protein_trait_raw$cor %>%
             as_tibble(rownames = "protein") %>%
-            rename_at(vars(2:last_col()), function(x) {paste0("trait_", x)})
+            pivot_longer(-protein, names_to = "trait", values_to = "coefficient")
         
-        protein_kme = x$kME %>%
-            as_tibble(rownames = "protein")
+        b = protein_trait_raw$p %>%
+            as_tibble(rownames = "protein") %>%
+            pivot_longer(-protein, names_to = "trait", values_to = "pvalue")
         
-        stopifnot(protein_trait$protein == protein_kme$protein )
+        stopifnot(all(a$protein == b$protein))
+        stopifnot(all(a$trait == b$trait))
         
-        gene_membership = bind_cols(protein_kme, protein_trait %>% select(-protein))
+        gene_significance = bind_cols(a, b %>% select(pvalue))
+        
+    
+  
         
         list(
             group_index = x$group_index,
-            gene_membership = gene_membership
+            gene_significance = gene_significance,
+            kME = x$kME # Should probably have been calculated here instead of in wgcna_modules, but what gives.. Just past it on.
         )
     }
 )
@@ -465,20 +489,29 @@ lapply(
     trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[1]]
     function(i) { 
         
-        traits_modules[[i$group_index]]$gene_membership %>%
-            select(protein, module = paste0("k", i$module), trait = paste0("trait_", i$trait)) %>%
-            ggplot(aes(module, trait, label = protein)) + 
-            geom_point() + 
-            geom_smooth(method = "lm") +
-            #geom_text(size = 2, alpha = 0.5) +
-            labs(
-                title = filter(groups, group_index == i$group_index),
-                subtitle = "Connectivity and gene significance",
-                x = paste(i$module, "module connectivity"), 
-                y = paste(i$trait, "trait correlation")
+        message(paste(i, collapse = ", "))
+        
+        df_trait = traits_modules[[i$group_index]]$gene_significance %>%
+            filter(trait == i$trait) %>%
+            rename(
+                trait_correlation = coefficient,
+                trait_pvalue = pvalue
             )
         
-        presentable_ = paste(filter(groups, group_index == i$group_index)$presentable, i$trait, i$module, collapse = "_", sep = "_")
+        df_module = traits_modules[[i$group_index]]$kME %>%
+            as_tibble(rownames = "protein") %>%
+            select(protein, module_connectivity = paste0("k", i$module))
+        
+        left_join(df_trait, df_module, by = "protein") %>%
+            ggplot(aes(module_connectivity, trait_correlation, color = trait_pvalue <= 0.05)) + 
+            geom_point() +
+            geom_smooth(mapping = aes(group = 1), method = "lm") +
+            labs(
+                title = filter(groups, group_index == i$group_index)$presentable,
+                subtitle = "Gene significance: Module connectivity and trait correlation.",
+                x = paste(i$module, "(module connectivity)"),
+                y = paste(i$trait, "(trait correlation)")
+            )
         
         ggsave(generate_fig_name(output_trait_connectivity_file, paste_("trait_gene", presentable_)), height = height, width = width)
         
@@ -527,7 +560,7 @@ lapply(
             #geom_text(size = 2, alpha = 0.5) +
             labs(
                 title = filter(groups, group_index == i$group_index),
-                subtitle = "Connectivity and gene significance"
+                subtitle = "Gene significance: Module connectivity and trait correlation."
             )
     }
 )
