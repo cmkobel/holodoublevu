@@ -110,7 +110,7 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
     # Another incoherence is that some dbB's are missing the bovine tax id. This should also be fixed outside in the original source file.
     # Eukaryota Animalia Chordata Mammalia Artiodactyla Bovidae Bos taurus Bos taurus
     mutate(
-        tax_domain  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "coweyEukaryota", TRUE ~ tax_domain ),
+        tax_domain  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Eukaryota", TRUE ~ tax_domain ),
         tax_kingdom = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Animalia", TRUE ~ tax_kingdom),
         tax_phylum  = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Chordata", TRUE ~ tax_phylum ),
         tax_class   = case_when(is.na(sample) & str_detect(protein, "^dbB\\|") ~ "Mammalia", TRUE ~ tax_class  ),
