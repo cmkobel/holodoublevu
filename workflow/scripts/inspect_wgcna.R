@@ -548,8 +548,12 @@ mm_gs_filtered = lapply(
         mm_gs_joined %>%
             filter(significance == "module & trait") %>%
             arrange(module_membership, trait_correlation) %>%
-            mutate(group_index = i$group_index) %>%
-            relocate(group_index)
+            mutate(
+                group_index = i$group_index,
+                presentable = filter(groups, group_index == i$group_index)$presentable,
+                
+            ) %>%
+            relocate(presentable, group_index)
         
     }
     

@@ -56,7 +56,7 @@ rule all:
         [f"results/ig/{i}/wgcna/species_table/species_table.rds" for i in config["imputation_group"].keys()],
         # Pack pdfs together for portability of results
 
-        [f"results/ig/{ig}/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.rds" for i in config["imputation_group"].keys()],
+        [f"results/ig/{i}/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.rds" for i in config["imputation_group"].keys()],
         
         # TODO:
         # WGCNA holomodules, export to cytoscape for visualization.
@@ -309,6 +309,12 @@ rule pdf:
 pack_pdf = """
     test -f holodoublevu_pdfs.zip && rm holodoublevu_pdfs.zip
     find results -name "*.pdf" | zip -q holodoublevu_pdfs.zip -@
+    
+    
+    head -n 1 results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv > vsplit.tsv
+    grep "vsplit" results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv >> vsplit.tsv 
+
+    
     echo "pdfs are ready"
 """
 
