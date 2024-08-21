@@ -422,7 +422,7 @@ trait_modules_of_interest = lapply(
 
 if (!interactive()) {
     trait_modules_of_interest %>%
-        write_rds_and_tsv(output_module_membership_trait_significance_file)
+        write_tsv(paste0(dirname(output_module_membership_trait_significance_file), "/trait_modules_of_interest.tsv"))
 }
 
 
@@ -494,7 +494,7 @@ mm_gs = lapply(
 
 
 # Plot each module that is significantly correlated to a trait.
-lapply(
+mm_gs_filtered = lapply(
     trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[1]]
     function(i) { 
         
@@ -555,3 +555,11 @@ lapply(
     
 ) %>%
     bind_rows()
+
+
+if (!interactive()) {
+    mm_gs_filtered %>%
+        write_rds_and_tsv(output_module_membership_trait_significance_file)
+        
+}
+
