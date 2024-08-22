@@ -75,9 +75,9 @@ proteome2genome %>%
     slice_sample(n = 1)
 
 
-trait_modules_of_interest %>% 
-    filter(trait == "vsplit") %>%
-    handful()
+# trait_modules_of_interest %>% 
+#     filter(trait == "vsplit") %>%
+#     handful()
 
 
 # Let's see if they map at all.
