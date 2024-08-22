@@ -11,9 +11,12 @@ groups_file = snakemake@input[["groups"]] %>% as.character()
 net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 proteome2genome_file <- snakemake@input[["proteome2genome"]] %>% as.character()
 # annotations_file = snakemake@input[["annotations"]] %>% as.character()
-
+#Hvis jeg læser trait_modules_of_interest.tsv ind i pathway or species kan jeg highlighte i plotsene
+trait_modules_of_interest_file = snakemake@input[["trait_modules_of_interest"]] %>% as.character()
 
 output_species_table_file <- snakemake@output[["species_table"]] %>% as.character()
+
+
 
 # For debugging
 if (interactive()) {
@@ -22,6 +25,7 @@ if (interactive()) {
     net_results_file <- "results/ig/both/wgcna/modules.rds"
     proteome2genome_file <- "~/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
     # annotations_file <- "results/annotation/annotation.emapper.annotations"
+    trait_modules_of_interest_file = "results/ig/both/wgcna/inspected/module_membership_trait_significance/trait_modules_of_interest.tsv"
 
     output_species_table_file <- "results/ig/aberdeen/wgcna/species_table/species_table.rds"
 
@@ -39,6 +43,7 @@ groups <- read_tsv(groups_file)
 net_results <- read_rds(net_results_file)
 # annotations_raw <- read_tsv(annotations_file, skip = 4, comment = "##", na = "-")
 proteome2genome_raw <- read_rds(proteome2genome_file)
+trait_modules_of_interest = read_tsv(trait_modules_of_interest_file)
 
 
 
@@ -68,6 +73,11 @@ proteome2genome %>%
 proteome2genome %>%
     group_by(str_sub(protein, 1, 4)) %>%
     slice_sample(n = 1)
+
+
+trait_modules_of_interest %>% 
+    filter(trait == "vsplit") %>%
+    handful()
 
 
 # Let's see if they map at all.
@@ -130,15 +140,14 @@ species_table <- lapply( # one group, e.g. "D, slaughter, 1"
     )
 
 
-# save this file because now it is clean
-species_table %>%
-    write_rds_and_tsv(paste0(dirname(output_species_table_file), "/species_table.rds"))
+
 
 species_table %>%
     select(tax_genus, tax_species, tax_binomial) %>%
     handful()
 
 
+# save this file because now it is clean
 if (!interactive()) {
     species_table %>%
         write_rds_and_tsv(output_species_table_file)
@@ -209,13 +218,20 @@ lapply(
             column_to_rownames(var = "module") %>%
             dist(method = "binary") %>%
             hclust()
+    
+        # modules_to_highlight = trait_modules_of_interest %>%
+        #     filter(trait == "vsplit" & group_index == i$group_index[[1]])
 
         j %>%
             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_genus, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
-            geom_tile() +
+            # geom_tile(
+            #     mapping = aes(str_extract(module, "\\d+"), "trait_vsplit", fill = abs(coefficient)),
+            #     data = modules_to_highlight
+            #     ) +
+            geom_tile() + 
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,

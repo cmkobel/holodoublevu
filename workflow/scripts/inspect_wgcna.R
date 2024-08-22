@@ -320,6 +320,10 @@ mutate(
     
 ) 
 
+axis_couples %>%
+    write_rds_and_tsv(paste0(dirname(output_rds_file), "/axis_couples.tsv"))
+
+
 
 
 # --- Correlating to phenotypes
@@ -438,6 +442,8 @@ mm_gs = lapply(
         }
         
         # Correlate proteins and modules (kME) including pvalues. I really need a way to be able to pick out which exact proteins are of significance. Otherwise there is just too much data.
+        # I just realized that I have been correlating _all_ proteins. Really, I think it is more relevant to only correlate the ones that are part of the module. So I will have to run this code once for each module instead. Maybe I should just reuse the code from module plotting. On the other hand, does it really matter, If I just filter for the proteins that are in the module, it might not really make a difference.
+        # My solution will be to simply plot only the proteins that are part. I also will only export to disk the ones that are from a specific module. It isn't that I don't think other proteins can be interesting, it just is that I want to limit myself to only be looking at what is really super interesting and follows the wgcna framework. Maybe calculating the pvalues with everything in one go is smart because it is then easier to compare between modules. I guess it also must make sense since they decided to do it that way in the tutorial (or on the bioconductor forum at least). In the book figure (fig 5.4) it _does_ look like they're only plotting the proteins _from_ the module (there is not that many)
         protein_module_raw = corAndPvalue(
             x$datExpr,
             x$net$MEs
@@ -495,15 +501,24 @@ mm_gs = lapply(
 
 # Plot each module that is significantly correlated to a trait.
 mm_gs_filtered = lapply(
-    trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[1]]
+    trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[92]]
     function(i) { 
         
-        message(paste(i, collapse = ", "))
-        
         presentable_ = filter(groups, group_index == i$group_index)$presentable
+        message(presentable_)
+        
+        message(paste(i, collapse = ", "))
+        # Men hvor får jeg proteinerne fra?
+        module_proteins = net_results[[i$group_index]]$net$colors %>%
+            as_tibble(rownames = "protein") %>%
+            rename(module = value) %>% 
+            filter(module == as.integer(str_extract(i$module, "\\d+"))) %>%
+            select(protein)
+            
         
         
-        df_module = mm_gs[[i$group_index]]$module_membership %>%
+        df_module = module_proteins %>%
+            left_join(mm_gs[[i$group_index]]$module_membership %>% filter(module == i$module), by = "protein") %>%
             filter(module == i$module) %>%
             rename(
                 module_membership = coefficient, # formerly module_connectivity
@@ -511,8 +526,9 @@ mm_gs_filtered = lapply(
             )
         
         
-        df_trait = mm_gs[[i$group_index]]$gene_significance %>%
-            filter(trait == i$trait) %>%
+        df_trait = module_proteins %>%
+            left_join(mm_gs[[i$group_index]]$gene_significance %>%
+                filter(trait == i$trait), by = "protein") %>%
             rename(
                 trait_correlation = coefficient, # formerly trait_correlation
                 trait_pvalue = pvalue
@@ -532,12 +548,30 @@ mm_gs_filtered = lapply(
             )
         
         mm_gs_joined %>%
-            ggplot(aes(module_membership, trait_correlation, color = significance)) + 
-            geom_point() +
-            geom_smooth(mapping = aes(group = 1), method = "lm") +
+            mutate(filter_stat = abs(trait_pvalue) * abs(module_pvalue)) %>%
+            arrange((filter_stat)) %>%
+            mutate(
+                filter_stat_rank = 1:n(),
+                label_ = case_when(
+                    
+                    significance == "module & trait" & filter_stat_rank <= 20 ~ protein,
+                    TRUE ~ ""
+                )
+            ) %>%
+            ggplot(aes(module_membership, trait_correlation, color = significance, label = label_)) + 
+            geom_smooth(mapping = aes(group = 1), method = "lm", alpha = 0.2) +
+            geom_point(alpha = 0.7) +
+            scale_color_manual(values = c(
+                "module & trait" = rgb(188/255, 127/255, 249/255), # purple
+                "module" = rgb(232/255, 126/255, 114/255), # red
+                "trait" = rgb(90/255, 190/255, 190/255), # cyan
+                "none" = "grey")
+            ) +
+            geom_text(size = 1.5, alpha = 0.3, hjust = 0, vjust = 0, color = "black") +
             labs(
                 title = filter(groups, group_index == i$group_index)$presentable,
-                subtitle = "Gene significance: Module connectivity and trait correlation.",
+                subtitle = paste0("Trait ", i$trait, ", module ", i$module, "\nModule membership and trait significance"),
+                caption = paste0("Trait-module correlatien (pvalue): ", round(i$coefficient, 2), " (", signif(i$pvalue, 2), ")"),
                 x = paste(i$module, "(module membership)"),
                 y = paste(i$trait, "(trait correlation)")
             )
@@ -546,8 +580,8 @@ mm_gs_filtered = lapply(
         
         # Save the significant ones to disk.
         mm_gs_joined %>%
-            filter(significance == "module & trait") %>%
-            arrange(module_membership, trait_correlation) %>%
+            #filter(significance == "module & trait") %>%
+            arrange(desc(abs(module_membership)*abs(trait_correlation))) %>%
             mutate(
                 group_index = i$group_index,
                 presentable = filter(groups, group_index == i$group_index)$presentable,
