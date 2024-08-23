@@ -259,7 +259,7 @@ handful(species_table)
 lapply(
     species_table %>%
         group_by(group_index) %>%
-        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[2]]
+        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
     function(i) {
         j <- i %>%
             count(module, tax_intermediate = paste(tax_kingdom, tax_phylum, sep = ", "), tax_binomial)
@@ -275,7 +275,7 @@ lapply(
         plot_top = j %>%
             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85, trans = "log", direction = -1) +
+            scale_fill_viridis_c(begin = 0, end = .85, trans = "log", direction = -1) +
             scale_x_discrete(drop = FALSE) +
             ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
             geom_tile() +
