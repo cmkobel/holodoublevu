@@ -318,9 +318,7 @@ lapply(
         plot_top / plot_bottom + 
             patchwork::plot_layout(heights = c(10, 1))
 
-        height_multiplier <- j %>%
-            count(tax_binomial) %>%
-            nrow()
+        height_multiplier <- (count(j, tax_binomial) %>% nrow()) + (count(plot_bottom_df, trait) %>% nrow())
 
 
         ggsave(generate_fig_name(output_species_table_file, paste_("tax_binomial", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)

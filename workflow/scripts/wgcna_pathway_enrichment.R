@@ -214,9 +214,11 @@ lapply(
         j
         
         # I wish to add a plot underneath that shows a selected trait. Because that would make it easy to look for patterns that could explain stuff.
-        plot_bottom = trait_modules_of_interest %>% 
+        plot_bottom_df = trait_modules_of_interest %>% 
             #filter(trait == "vsplit") %>% 
-            mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) %>% # sort modules on distance
+            mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) # sort modules on distance
+        
+        plot_bottom = plot_bottom_df %>% 
             ggplot(aes(module,  trait, fill = coefficient)) +
             scale_fill_viridis_b(begin = 0, end = .85, option = "H") +
             scale_x_discrete(drop = FALSE) +
@@ -232,9 +234,10 @@ lapply(
         plot_top / plot_bottom + 
             patchwork::plot_layout(heights = c(10, 1))
 
-        height_multiplier <- j %>%
-            count(pathway) %>%
-            nrow()
+        # height_multiplier <- j %>%
+        #     count(pathway) %>%
+        #     nrow()
+        height_multiplier <- (count(j, pathway) %>% nrow()) + (count(plot_bottom_df, trait) %>% nrow())
 
         ggsave(generate_fig_name(output_pathway_enrichment_file, paste_("pathway", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 12)
     }
