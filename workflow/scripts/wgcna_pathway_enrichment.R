@@ -220,8 +220,9 @@ lapply(
         
         plot_bottom = plot_bottom_df %>% 
             ggplot(aes(module,  trait, fill = coefficient)) +
-            scale_fill_viridis_c(begin = 0, end = .85, option = "H") +
             scale_x_discrete(drop = FALSE) +
+            scale_y_discrete(drop = FALSE) +
+            ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
             geom_tile() +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
@@ -232,13 +233,14 @@ lapply(
         
         
         plot_top / plot_bottom + 
-            patchwork::plot_layout(heights = c(10, 1))
+            patchwork::plot_layout(heights = c(nrow(count(j, pathway)), nrow(count(plot_bottom_df, trait))))
 
         # height_multiplier <- j %>%
         #     count(pathway) %>%
         #     nrow()
         height_multiplier <- (count(j, pathway) %>% nrow()) + (count(plot_bottom_df, trait) %>% nrow())
-
+        
+        
         ggsave(generate_fig_name(output_pathway_enrichment_file, paste_("pathway", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 12)
     }
 )

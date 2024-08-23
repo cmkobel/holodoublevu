@@ -295,14 +295,18 @@ lapply(
         
         plot_bottom_df = trait_modules_of_interest %>% 
             #filter(trait == "vsplit") %>%
+            #filter(trait %in% )
             filter(group_index == i$group_index[[1]]) %>% 
             mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) # sort modules on distance
         
         if (nrow(plot_bottom_df) > 0) {
             plot_bottom = plot_bottom_df %>% 
                 ggplot(aes(module,  trait, fill = coefficient)) +
-                scale_fill_viridis_c(begin = 0, end = .85, option = "H") +
+                #scale_fill_viridis_c(begin = 0, end = .85, option = "H") +
+                #scale_fill_brewer(palette = "PiYG") +
                 scale_x_discrete(drop = FALSE) +
+                scale_y_discrete(drop = FALSE) +
+                ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
                 geom_tile() +
                 theme(
                     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
@@ -316,11 +320,11 @@ lapply(
         
         
         plot_top / plot_bottom + 
-            patchwork::plot_layout(heights = c(10, 1))
+            patchwork::plot_layout(heights = c(nrow(count(j, tax_binomial)), nrow(count(plot_bottom_df, trait))))
 
         height_multiplier <- (count(j, tax_binomial) %>% nrow()) + (count(plot_bottom_df, trait) %>% nrow())
 
-
+        ggsave("thisplot.pdf", height = (height_multiplier / 7) + 2, width = 12, limitsize = F) # debug
         ggsave(generate_fig_name(output_species_table_file, paste_("tax_binomial", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
         
     }
