@@ -275,15 +275,14 @@ lapply(
         plot_top = j %>%
             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
+            scale_fill_viridis_b(begin = 0, end = .85, trans = "log", direction = -1) +
             scale_x_discrete(drop = FALSE) +
             ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups",
-                caption = "Modules clustered by binary distance of species."
+                subtitle = "Count of proteins per module, for taxonomical groups"
             ) +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
@@ -307,12 +306,14 @@ lapply(
                 scale_x_discrete(drop = FALSE) +
                 scale_y_discrete(drop = FALSE) +
                 ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
-                geom_tile() +
+                geom_tile() + 
+                facet_wrap(~"phenotype") +
+                theme_bw() +
                 theme(
                     axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
                 ) + 
                 labs(
-                    caption = "Modules clustered by binary distance of pathways."
+                    caption = "Modules clustered by binary distance of species."
                 )
         } else {
             plot_bottom = NULL

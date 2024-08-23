@@ -224,6 +224,8 @@ lapply(
             scale_y_discrete(drop = FALSE) +
             ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
             geom_tile() +
+            facet_wrap(~"phenotype") +
+            theme_bw() +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             ) + 
