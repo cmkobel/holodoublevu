@@ -220,7 +220,7 @@ lapply(
         
         plot_bottom = plot_bottom_df %>% 
             ggplot(aes(module,  trait, fill = coefficient)) +
-            scale_fill_viridis_b(begin = 0, end = .85, option = "H") +
+            scale_fill_viridis_c(begin = 0, end = .85, option = "H") +
             scale_x_discrete(drop = FALSE) +
             geom_tile() +
             theme(

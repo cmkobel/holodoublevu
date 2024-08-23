@@ -159,99 +159,99 @@ if (!interactive()) {
 
 handful(species_table)
 
-
-# 1 family
-lapply(
-    species_table %>%
-        group_by(group_index) %>%
-        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
-    function(i) {
-        j <- i %>%
-            count(module, tax_kingdom, tax_family)
-        
-        dist_ = j %>%
-            pivot_wider(id_cols = module, names_from = tax_family, values_from = n, values_fill = 0) %>%
-            drop_na(module) %>%
-            column_to_rownames(var = "module") %>%
-            dist(method = "binary") %>%
-            hclust()
-
-        j %>%
-            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
-            ggplot(aes(module, tax_family, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
-            ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
-            geom_tile() +
-            theme_bw() +
-            labs(
-                title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups",
-                caption = "Modules sorted by binary distance."
-            ) + 
-            theme(
-                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
-            )
-        
-        
-
-        height_multiplier <- j %>%
-            count(tax_family) %>%
-            nrow()
-
-        # ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = (height_multiplier / 7) + 2, width = 10)
-        ggsave(generate_fig_name(output_species_table_file, paste_("tax_family", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
-    }
-)
-
-
-# 2 genus
-lapply(
-    species_table %>%
-        group_by(group_index) %>%
-        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
-    function(i) {
-        j <- i %>%
-            count(module, tax_kingdom, tax_genus)
-        
-        dist_ = j %>%
-            pivot_wider(id_cols = module, names_from = tax_genus, values_from = n, values_fill = 0) %>%
-            drop_na(module) %>%
-            column_to_rownames(var = "module") %>%
-            dist(method = "binary") %>%
-            hclust()
-    
-        # modules_to_highlight = trait_modules_of_interest %>%
-        #     filter(trait == "vsplit" & group_index == i$group_index[[1]])
-
-        j %>%
-            mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
-            ggplot(aes(module, tax_genus, fill = n)) +
-            scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
-            ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
-            # geom_tile(
-            #     mapping = aes(str_extract(module, "\\d+"), "trait_vsplit", fill = abs(coefficient)),
-            #     data = modules_to_highlight
-            #     ) +
-            geom_tile() + 
-            theme_bw() +
-            labs(
-                title = filter(groups, group_index == i$group_index[[1]])$presentable,
-                subtitle = "Count of proteins per module, for taxonomical groups",
-                caption = "Modules sorted by binary distance."
-            ) +
-            theme(
-                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
-            )
-
-        height_multiplier <- j %>%
-            count(tax_genus) %>%
-            nrow()
-
-
-        # ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = (height_multiplier / 7) + 2, width = 10)
-        ggsave(generate_fig_name(output_species_table_file, paste_("tax_genus", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
-    }
-)
+# 
+# # 1 family
+# lapply(
+#     species_table %>%
+#         group_by(group_index) %>%
+#         group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
+#     function(i) {
+#         j <- i %>%
+#             count(module, tax_kingdom, tax_family)
+#         
+#         dist_ = j %>%
+#             pivot_wider(id_cols = module, names_from = tax_family, values_from = n, values_fill = 0) %>%
+#             drop_na(module) %>%
+#             column_to_rownames(var = "module") %>%
+#             dist(method = "binary") %>%
+#             hclust()
+# 
+#         j %>%
+#             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
+#             ggplot(aes(module, tax_family, fill = n)) +
+#             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
+#             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
+#             geom_tile() +
+#             theme_bw() +
+#             labs(
+#                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
+#                 subtitle = "Count of proteins per module, for taxonomical groups",
+#                 caption = "Modules sorted by binary distance."
+#             ) + 
+#             theme(
+#                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+#             )
+#         
+#         
+# 
+#         height_multiplier <- j %>%
+#             count(tax_family) %>%
+#             nrow()
+# 
+#         # ggsave(generate_fig_name(output_species_table_file, "tax_family"), height = (height_multiplier / 7) + 2, width = 10)
+#         ggsave(generate_fig_name(output_species_table_file, paste_("tax_family", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
+#     }
+# )
+# 
+# 
+# # 2 genus
+# lapply(
+#     species_table %>%
+#         group_by(group_index) %>%
+#         group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
+#     function(i) {
+#         j <- i %>%
+#             count(module, tax_kingdom, tax_genus)
+#         
+#         dist_ = j %>%
+#             pivot_wider(id_cols = module, names_from = tax_genus, values_from = n, values_fill = 0) %>%
+#             drop_na(module) %>%
+#             column_to_rownames(var = "module") %>%
+#             dist(method = "binary") %>%
+#             hclust()
+#     
+#         # modules_to_highlight = trait_modules_of_interest %>%
+#         #     filter(trait == "vsplit" & group_index == i$group_index[[1]])
+# 
+#         j %>%
+#             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
+#             ggplot(aes(module, tax_genus, fill = n)) +
+#             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
+#             ggforce::facet_col(tax_kingdom ~ ., scales = "free_y", space = "free") +
+#             # geom_tile(
+#             #     mapping = aes(str_extract(module, "\\d+"), "trait_vsplit", fill = abs(coefficient)),
+#             #     data = modules_to_highlight
+#             #     ) +
+#             geom_tile() + 
+#             theme_bw() +
+#             labs(
+#                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
+#                 subtitle = "Count of proteins per module, for taxonomical groups",
+#                 caption = "Modules sorted by binary distance."
+#             ) +
+#             theme(
+#                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+#             )
+# 
+#         height_multiplier <- j %>%
+#             count(tax_genus) %>%
+#             nrow()
+# 
+# 
+#         # ggsave(generate_fig_name(output_species_table_file, "tax_genus"), height = (height_multiplier / 7) + 2, width = 10)
+#         ggsave(generate_fig_name(output_species_table_file, paste_("tax_genus", filter(groups, group_index == i$group_index[[1]])$presentable)), height = (height_multiplier / 7) + 2, width = 10, limitsize = F)
+#     }
+# )
 
 
 # 3 binomial 
@@ -301,7 +301,7 @@ lapply(
         if (nrow(plot_bottom_df) > 0) {
             plot_bottom = plot_bottom_df %>% 
                 ggplot(aes(module,  trait, fill = coefficient)) +
-                scale_fill_viridis_b(begin = 0, end = .85, option = "H") +
+                scale_fill_viridis_c(begin = 0, end = .85, option = "H") +
                 scale_x_discrete(drop = FALSE) +
                 geom_tile() +
                 theme(
