@@ -1,5 +1,5 @@
-
 #!/usr/bin/env Rscript
+
 # rm(list = ls())
 library(tidyverse)
 library(clusterProfiler)
@@ -29,7 +29,7 @@ if (interactive()) {
     trait_modules_of_interest_file = "results/ig/both/wgcna/inspected/module_membership_trait_significance/trait_modules_of_interest.tsv"
     
 
-    output_pathway_enrichment_file <- "results/ig/aberdeen/wgcna/pathway_enrichment/pathway_enrichment.rds"
+    output_pathway_enrichment_file <- "results/ig/both/wgcna/pathway_enrichment/pathway_enrichment.rds"
 
     figno_var <<- 1000
 }
@@ -177,12 +177,14 @@ if (!interactive()) {
 lapply(
     pe_analyses %>%
         group_by(group_index) %>%
-        group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[1]]
+        group_split(), # i = (pe_analyses %>% group_by(group_index) %>% group_split())[[2]]
     function(i) {
         j <- i %>%
             left_join(pathway_hierarchy, by = "pathway") %>%
             # slice_sample(n = 100) %>%
             filter(!str_detect(pathway_class, "^09160|09190")) # Remove boring pathways (human diseases and whatnot)
+        
+        
         
         dist_ = j %>%
             pivot_wider(id_cols = module, names_from = pathway, values_from = p.adjust, values_fill = 0) %>%
@@ -211,27 +213,33 @@ lapply(
             )
         
         
-        j
         
         # I wish to add a plot underneath that shows a selected trait. Because that would make it easy to look for patterns that could explain stuff.
         plot_bottom_df = trait_modules_of_interest %>% 
             #filter(trait == "vsplit") %>% 
+            filter(group_index == i$group_index[[1]]) %>%
             mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) # sort modules on distance
         
-        plot_bottom = plot_bottom_df %>% 
-            ggplot(aes(module,  trait, fill = coefficient)) +
-            scale_x_discrete(drop = FALSE) +
-            scale_y_discrete(drop = FALSE) +
-            ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
-            geom_tile() +
-            facet_wrap(~"phenotype") +
-            theme_bw() +
-            theme(
-                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
-            ) + 
-            labs(
-                caption = "Modules clustered by binary distance of pathways."
-            )
+        if (nrow(plot_bottom_df) > 0) {
+            
+            plot_bottom = plot_bottom_df %>% 
+                ggplot(aes(module,  trait, fill = coefficient)) +
+                scale_x_discrete(drop = FALSE) +
+                scale_y_discrete(drop = FALSE) +
+                ggplot2::scale_fill_gradient2(low = "red4", mid = "white", high = "blue4") +
+                geom_tile() +
+                facet_wrap(~"Significant phenotypic traits") +
+                theme_bw() +
+                theme(
+                    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+                ) + 
+                labs(
+                    caption = "Modules clustered by binary distance of pathways."
+                )
+            
+        } else {
+            plot_bottom = NULL
+        }
         
         
         plot_top / plot_bottom + 
