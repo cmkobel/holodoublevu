@@ -13,6 +13,7 @@ net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 groups_file = snakemake@input[["groups"]] %>% as.character()
 output_rds_file <- snakemake@output[["mod2mod"]] %>% as.character()
 output_module_membership_trait_significance_file = snakemake@output[["module_membership_trait_significance"]] %>% as.character()
+output_trait_modules_of_interest_file = snakemake@output[["trait_modules_of_interest"]] %>% as.character()
 
 
 # For debugging
@@ -321,7 +322,7 @@ mutate(
 ) 
 
 axis_couples %>%
-    write_rds_and_tsv(paste0(dirname(output_rds_file), "/axis_couples.tsv"))
+    write_rds_and_tsv(paste0(dirname(output_rds_file), "/axis_couples.rds"))
 
 
 
@@ -426,7 +427,7 @@ trait_modules_of_interest = lapply(
 
 if (!interactive()) {
     trait_modules_of_interest %>%
-        write_tsv(paste0(dirname(output_module_membership_trait_significance_file), "/trait_modules_of_interest.tsv"))
+        write_tsv(output_trait_modules_of_interest_file)
 }
 
 

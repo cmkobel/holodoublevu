@@ -1,7 +1,10 @@
+
 #!/usr/bin/env Rscript
 # rm(list = ls())
 library(tidyverse)
 library(clusterProfiler)
+library(patchwork) # Does clusterProfiler already require this?
+
 source("workflow/scripts/utils.R")
 
 # --- Inputs
@@ -11,6 +14,8 @@ groups_file = snakemake@input[["groups"]] %>% as.character()
 net_results_file <- snakemake@input[["wgcna_modules"]] %>% as.character()
 annotations_file = snakemake@input[["annotations"]] %>% as.character()
 kegg_data_file = snakemake@input[["kegg_data"]] %>% as.character()
+trait_modules_of_interest_file = snakemake@input[["trait_modules_of_interest"]] %>% as.character()
+
 
 output_pathway_enrichment_file <- snakemake@output[["pathway_enrichment"]] %>% as.character()
 
@@ -21,6 +26,8 @@ if (interactive()) {
     net_results_file <- "results/ig/both/wgcna/modules.rds"
     annotations_file <- "results/annotation/annotation.emapper.annotations"
     kegg_data_file <- "resources/kegg_data.tsv"
+    trait_modules_of_interest_file = "results/ig/both/wgcna/inspected/module_membership_trait_significance/trait_modules_of_interest.tsv"
+    
 
     output_pathway_enrichment_file <- "results/ig/aberdeen/wgcna/pathway_enrichment/pathway_enrichment.rds"
 
@@ -38,6 +45,7 @@ groups <- read_tsv(groups_file)
 net_results <- read_rds(net_results_file)
 annotations_raw <- read_tsv(annotations_file, skip = 4, comment = "##", na = "-")
 kegg_data_raw <- read_tsv(kegg_data_file)
+trait_modules_of_interest = read_tsv(trait_modules_of_interest_file)
 
 
 # --- Housekeeping
@@ -86,6 +94,13 @@ if (annotations$protein %>% length() != annotations$protein %>%
 # Count the number of proteins from each pathway in each module.
 # Jeg fik lige en interessant ide. Hvorfor er det egentlig at jeg har fokuseret så meget på at kigge på enrichment? Hvad med at kigge på antal ortologer for en pathway istedet? Er det ikke lige så godt som at køre en masse hypergeometriske test, bare at se hvad der er til stede? det er i hvert fald hurtigere. Og antallet måske også lettere at fortolke end en p-værdi?
 
+# Hierarchy used for sorting
+pathway_hierarchy <- kegg_data %>%
+    distinct(pathway_class = class, pathway_group = group, pathway) %>%
+    arrange(pathway_class, pathway_group, pathway)
+handful(pathway_hierarchy)
+
+
 # Geneset
 term2gene <- kegg_data %>%
     select(term = pathway, gene = ko_id)
@@ -101,7 +116,7 @@ term2gene %>% handful()
 pe_analyses <- lapply( # one group, e.g. "D, slaughter, 1"
     groups %>%
         rowwise() %>%
-        group_split(), # Debug i = (groups %>% rowwise() %>% group_split())[[1]]
+        group_split(), # i = (groups %>% rowwise() %>% group_split())[[1]]
     function(i) {
         message("group ", paste(i, collapse = ", "))
 
@@ -159,11 +174,6 @@ if (!interactive()) {
 # Simple tile showing pathways and modules
 
 
-pathway_hierarchy <- kegg_data %>%
-    distinct(pathway_class = class, pathway_group = group, pathway) %>%
-    arrange(pathway_class, pathway_group, pathway)
-handful(pathway_hierarchy)
-
 lapply(
     pe_analyses %>%
         group_by(group_index) %>%
@@ -182,28 +192,45 @@ lapply(
             hclust()
 
         
-    
-        
-        j %>%
+        plot_top = j %>%
             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>% # sort modules on distance
             mutate(pathway = factor(pathway, levels = pathway_hierarchy$pathway)) %>% # sort pathways hierarchically
             ggplot(aes(module, pathway, fill = p.adjust)) +
             # facet_wrap(~pathway_class, space = "free") +
             scale_fill_viridis_b(begin = 0, end = .85) +
+            scale_x_discrete(drop = FALSE) +
             ggforce::facet_col(pathway_class ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
-                title = paste(
-                    groups %>% filter(group_index == i$group_index[[1]]),
-                    collapse = ", "
-                ),
-                subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported.",
-                caption = "Modules sorted by binary distance."
+                title = filter(groups, group_index == i$group_index[[1]])$presentable,
+                subtitle = "Pathway enrichment analysis on WGCNA modules. Only p.adjust significant values reported."
             ) + 
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
+        
+        
+        j
+        
+        # I wish to add a plot underneath that shows a selected trait. Because that would make it easy to look for patterns that could explain stuff.
+        plot_bottom = trait_modules_of_interest %>% 
+            #filter(trait == "vsplit") %>% 
+            mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) %>% # sort modules on distance
+            ggplot(aes(module,  trait, fill = coefficient)) +
+            scale_fill_viridis_b(begin = 0, end = .85, option = "H") +
+            scale_x_discrete(drop = FALSE) +
+            geom_tile() +
+            theme(
+                axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+            ) + 
+            labs(
+                caption = "Modules clustered by binary distance of pathways."
+            )
+        
+        
+        plot_top / plot_bottom + 
+            patchwork::plot_layout(heights = c(10, 1))
 
         height_multiplier <- j %>%
             count(pathway) %>%

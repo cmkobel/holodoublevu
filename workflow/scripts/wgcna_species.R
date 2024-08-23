@@ -2,6 +2,7 @@
 
 # rm(list = ls())
 library(tidyverse)
+library(patchwork)
 source("workflow/scripts/utils.R")
 
 # --- Inputs
@@ -75,9 +76,9 @@ proteome2genome %>%
     slice_sample(n = 1)
 
 
-# trait_modules_of_interest %>% 
-#     filter(trait == "vsplit") %>%
-#     handful()
+trait_modules_of_interest %>%
+    filter(trait == "vsplit") %>%
+    handful()
 
 
 # Let's see if they map at all.
@@ -253,11 +254,12 @@ lapply(
 )
 
 
-# 3 binomial
+# 3 binomial 
+# I'm considering if I should quit using the other tax levels.
 lapply(
     species_table %>%
         group_by(group_index) %>%
-        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[1]]
+        group_split(), # i = (species_table %>% group_by(group_index) %>% group_split())[[2]]
     function(i) {
         j <- i %>%
             count(module, tax_intermediate = paste(tax_kingdom, tax_phylum, sep = ", "), tax_binomial)
@@ -270,21 +272,51 @@ lapply(
             dist(method = "binary") %>% # "euclidean"27 (def), "maximum"28, "manhattan", "canberra"30, "binary"25 or "minkowski"26.
             hclust()
         
-        j %>%
+        plot_top = j %>%
             mutate(module = factor(module, levels = dist_$labels[dist_$order])) %>%
             ggplot(aes(module, tax_binomial, fill = n)) +
             scale_fill_viridis_b(begin = 0, end = .85, trans = "log") +
+            scale_x_discrete(drop = FALSE) +
             ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
             geom_tile() +
             theme_bw() +
             labs(
                 title = filter(groups, group_index == i$group_index[[1]])$presentable,
                 subtitle = "Count of proteins per module, for taxonomical groups",
-                caption = "Modules sorted by binary distance."
+                caption = "Modules clustered by binary distance of species."
             ) +
             theme(
                 axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
             )
+        
+        # test
+        #trait_modules_of_interest %>% handful()
+        
+        
+        plot_bottom_df = trait_modules_of_interest %>% 
+            #filter(trait == "vsplit") %>%
+            filter(group_index == i$group_index[[1]]) %>% 
+            mutate(module = factor(module, levels = paste0("ME", dist_$labels[dist_$order]))) # sort modules on distance
+        
+        if (nrow(plot_bottom_df) > 0) {
+            plot_bottom = plot_bottom_df %>% 
+                ggplot(aes(module,  trait, fill = coefficient)) +
+                scale_fill_viridis_b(begin = 0, end = .85, option = "H") +
+                scale_x_discrete(drop = FALSE) +
+                geom_tile() +
+                theme(
+                    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+                ) + 
+                labs(
+                    caption = "Modules clustered by binary distance of pathways."
+                )
+        } else {
+            plot_bottom = NULL
+        }
+        
+        
+        plot_top / plot_bottom + 
+            patchwork::plot_layout(heights = c(10, 1))
 
         height_multiplier <- j %>%
             count(tax_binomial) %>%

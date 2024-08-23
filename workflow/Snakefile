@@ -210,6 +210,7 @@ rule wgcna_pathway_enrichment: # Makes it possible to interpret biology
         annotations = "results/annotation/annotation.emapper.annotations",
         wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
         kegg_data = config["kegg_data"],
+        trait_modules_of_interest = "results/{imputation_group}/both/wgcna/inspected/module_membership_trait_significance/trait_modules_of_interest.tsv"
     output:
         pathway_enrichment = "results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_enrichment.rds",
         annotations_clean = "results/ig/{imputation_group}/wgcna/pathway_enrichment/annotations_clean.rds", # This is just a clean version of the annotations input. If I had time to generalize this workflow, I would make this the input..
@@ -226,6 +227,7 @@ rule wgcna_species:
         #annotations = "results/annotation/annotation.emapper.annotations",
         wgcna_modules = "results/ig/{imputation_group}/wgcna/modules.rds",
         proteome2genome = config["principal_input_proteome2genome_mapping"],
+        trait_modules_of_interest = "results/{imputation_group}/both/wgcna/inspected/module_membership_trait_significance/trait_modules_of_interest.tsv"
     output:
         species_table = "results/ig/{imputation_group}/wgcna/species_table/species_table.rds",
     conda: "envs/r-clusterprofiler.yaml"
