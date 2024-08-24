@@ -235,17 +235,17 @@ net_results <- lapply(
         
         message("Blockwise module construction ...")
         # Should probably try this with corType = "bicor" instead of the default corType = "pearson"
-        # settings 1:
+        # settings 2:
         net <- blockwiseModules(
             datExpr = datExpr,
             power = current_power,
             networkType = "signed",
             TOMType = "signed",
             corType = "bicor", # Wanxin's idea.
-            deepSplit = 1, # def 2
-            detectCutHeight = 0.97,# .995, .98 gave 53
+            #deepSplit = 1, # def 2
+            #detectCutHeight = 0.97,# .995, .98 gave 53
             numericLabels = T, # T if you want to manually recolor.
-            reassignThreshold = 0, # Torgeir's suggestion # 53 modules before writing this
+            #reassignThreshold = 0, # Torgeir's suggestion # 53 modules before writing this
             verbose = 2
         )
         
