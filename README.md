@@ -1,5 +1,7 @@
 # holodoublevu 🪢👀
 
+_"HOlistic LOw-level Denoising & OUtputting for BLEnded multi-View Unification" - Sorry that backronym was made with chatgpt. But the name is mine!_
+
 > I'm a pipeline kinda guy.
 
 This is a snakemake workflow that contains (nearly) all steps to perform the proteomics network analysis and interpretation. 
