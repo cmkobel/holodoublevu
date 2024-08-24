@@ -37,7 +37,7 @@ Can be used to see if any traits are obviously linked to a group of samples.
 **results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_digestaXwall_*.pdf**
 **results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_liverXwall_*.pdf**
 
-These files represent correlating modules pairwisely across the digesta-wall-liver axis. Significant correlations are marked. The significantly correlated modules are listed in <u>axis_couples.tsv***.
+These files represent correlating modules pairwisely across the digesta-wall-liver axis. Significant correlations are marked. The significantly correlated modules are listed in <u>axis_couples.tsv</u>.
   
 **results/ig/{imputation_group}/wgcna/inspected/dendro_*.pdf**
   
