@@ -16,7 +16,6 @@ annotations_file = snakemake@input[["annotations"]] %>% as.character()
 kegg_data_file = snakemake@input[["kegg_data"]] %>% as.character()
 trait_modules_of_interest_file = snakemake@input[["trait_modules_of_interest"]] %>% as.character()
 
-
 output_pathway_enrichment_file <- snakemake@output[["pathway_enrichment"]] %>% as.character()
 
 # For debugging
