@@ -37,7 +37,7 @@ Can be used to see if any traits are obviously linked to a group of samples.
 **results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_digestaXwall_*.pdf**
 **results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_liverXwall_*.pdf**
 
-These files represent correlating modules pairwisely across the digesta-wall-liver axis. Significant correlations are marked. The significantly correlated modules are listed in <u>axis_couples.tsv</u>.
+These files represent correlating modules pairwisely across the digesta-wall-liver axis. Significant correlations are marked. The significantly correlated modules are listed in <ins>axis_couples.tsv</ins>.
   
 **results/ig/{imputation_group}/wgcna/inspected/dendro_*.pdf**
   
@@ -49,7 +49,7 @@ Every protein is allocated to a single module. If it isn't it ends up in "module
 
 **results/ig/{imputation_group}/wgcna/inspected/pheno_*.pdf**
   
-Modules are correlated (across proteins) to phenotypic traits. Sometimes, a factor type trait is correlated to modules. When this is the case, the factors have been converted to numeric values. The link between this factor-numeric conversion can be seen in <u>trait_key.tsv</u>.
+Modules are correlated (across proteins) to phenotypic traits. Sometimes, a factor type trait is correlated to modules. When this is the case, the factors have been converted to numeric values. The link between this factor-numeric conversion can be seen in <ins>trait_key.tsv</ins>.
 
 **results/ig/{imputation_group}/wgcna/inspected/me_{imputation_group}_*.pdf**
   
@@ -60,14 +60,14 @@ Modules are correlated to themselves. Useful for inspecting merging of modules.
 
 **results/ig/{imputation_group}/wgcna/pathway_enrichment/pathway_*.pdf**
 
-The proteins in each module are subjected to pathway enrichment analysis. This heatmap shows which pathways are significantly enriched for in each module. In the bottom, another heatmap shows which modules are significantly correlated to phenotypic traits. File <u>pathway_enrichment.tsv</u> contains the significant results of all pathway enrichment analyses.
+The proteins in each module are subjected to pathway enrichment analysis. This heatmap shows which pathways are significantly enriched for in each module. In the bottom, another heatmap shows which modules are significantly correlated to phenotypic traits. File <ins>pathway_enrichment.tsv</ins> contains the significant results of all pathway enrichment analyses.
 
   
 **results/ig/{imputation_group}/wgcna/species_table/tax_binomial_*.pdf**
 
-The proteins in each module come from a specific species. Thes heatmap shows the count of proteins from each species in each module. In the bottom, another heatmap shows which modules are significantly correlated to phenotypic traits. The file <u>species_table.tsv</u> contains the link between protein and taxonomical id, grouped by layer and module.
+The proteins in each module come from a specific species. Thes heatmap shows the count of proteins from each species in each module. In the bottom, another heatmap shows which modules are significantly correlated to phenotypic traits. The file <ins>species_table.tsv</ins> contains the link between protein and taxonomical id, grouped by layer and module.
 
 
 **results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/moduletrait_\<trait>_*_\<module>*.pdf**
 
-The correlation between protein and module (across samples) is also referred to as module membership or module eigengene connectivity. Proteins with high module membership are regarded as hub nodes because they're well connected within the module. These plots show the module-trait correlation as a function of module membership. The file <u>module_membership_trait_significance.tsv</u> shows the module membership and trait correlation for all proteins. Another file, <u>results/ig/both/vsplit.tsv</u> is the same as this file but only showing proteins from vsplit-significant modules. All annotation and taxonomical id info is added to this file for a comprehensive overview.
+The correlation between protein and module (across samples) is also referred to as module membership or module eigengene connectivity. Proteins with high module membership are regarded as hub nodes because they're well connected within the module. These plots show the module-trait correlation as a function of module membership. The file <ins>module_membership_trait_significance.tsv</ins> shows the module membership and trait correlation for all proteins. Another file, <ins>results/ig/both/vsplit.tsv</ins> is the same as this file but only showing proteins from vsplit-significant modules. All annotation and taxonomical id info is added to this file for a comprehensive overview.
