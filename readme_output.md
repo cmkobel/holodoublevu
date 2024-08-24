@@ -6,6 +6,7 @@ Sorted by order of creation in the pipeline.
 
 
   - results/filtered/filter_f1.pdf
+    
     Scatterplot with number of proteins and the average intensity per protein. On the number of proteins, some samples have been excluded from downstream analysis.
     
 There are three imputation groups: [aberdeen, luing, both]. The following results exists for each of these groups.
@@ -18,9 +19,11 @@ There are three imputation groups: [aberdeen, luing, both]. The following result
 ## Module calling
 
   - results/ig/{imputation_group}/wgcna/pst_fig5.pdf
+    
     Before the modules are called, the tra
   
   - results/ig/{imputation_group}/wgcna/hclust_*.pdf
+    
     Hierarchical clustering of _all_ proteins and heatmap showing phenotypic traits
     Can be used to see if any traits are obviously linked to a group of samples.
     
@@ -31,9 +34,11 @@ There are three imputation groups: [aberdeen, luing, both]. The following result
   - results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_digestaXliver_fig14.pdf
   - results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_digestaXwall_fig13.pdf
   - results/ig/{imputation_group}/wgcna/inspected/axis_{imputation_group}_liverXwall_fig15.pdf
+    
     These files represent correlating modules pairwisely across the digesta-wall-liver axis. Significant correlations are marked.
     
   - results/ig/{imputation_group}/wgcna/inspected/count_*.pdf
+    
     Every protein is allocated to a single module. If it isn't it ends up in "module 0". Module names (0...N) are arranged by the number of proteins.
     
   - results/ig/{imputation_group}/wgcna/inspected/dendro_*.pdf
