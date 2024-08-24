@@ -308,13 +308,15 @@ rule pdf:
 
 pack_pdf = """
     test -f holodoublevu_pdfs.zip && rm holodoublevu_pdfs.zip
-    find results -name "*.pdf" > files_to_zip
-    #find results -name "*.tsv" >> files_to_zip
+    find results/ -name "*.pdf" > files_to_zip
+    find results/ -name "*.tsv" -size -10M  >> files_to_zip
+    
+    head -n 1 results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv > results/ig/both/vsplit.tsv
+    grep "vsplit" results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv >> results/ig/both/vsplit.tsv
+    
+    echo "results/ig/both/vsplit.tsv" >> files_to_zip
     cat files_to_zip | zip -q holodoublevu_pdfs.zip -@
     rm files_to_zip
-    
-    head -n 1 results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv > vsplit.tsv
-    grep "vsplit" results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv >> vsplit.tsv
     
     echo "pdfs are ready"
 """
