@@ -1,4 +1,4 @@
-# Explanation of plots in holodoublevu/results/*
+# Explanation of holodoublevu plots and results
 
 This file aims to help navigate and understand the output plots in the results/ directory.
 
