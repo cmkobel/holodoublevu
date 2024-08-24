@@ -105,20 +105,26 @@ lapply(
     function(i) {
         pdf(generate_fig_name(output_rds_file, paste_("dendro", filter(groups, group_index == i$group_index)$presentable)), height = height, width = width)
 
-        plotDendroAndColors(
-            i$net$dendrograms[[1]],
-            tibble(index = i$net$blockGenes[[1]]) %>%
-                left_join(
-                    i$net$colors %>%
-                        enframe() %>%
-                        mutate(index = 1:n())
-                ) %>%
-                select(-index) %>%
-                deframe(),
-            main = paste(filter(groups, group_index == i$group_index)$presentable, "(block 1 only)"),
-            # main = "Dendro (block 1 only)",
-            dendroLabels = F
-        )
+        
+        stopifnot(length(i$net$dendrograms) == length(i$net$blockGenes))
+        
+        for (j in seq_along(i$net$dendrograms)) {
+            plotDendroAndColors(
+                dendro = i$net$dendrograms[[j]],
+                colors = tibble(index = i$net$blockGenes[[j]]) %>%
+                    left_join(
+                        i$net$colors %>%
+                            enframe() %>%
+                            mutate(index = 1:n())
+                    ) %>%
+                    select(-index) %>%
+                    deframe(),
+                main = paste(filter(groups, group_index == i$group_index)$presentable, "(block", j, "only)"),
+                # main = "Dendro (block 1 only)",
+                dendroLabels = F
+            )
+        }
+        
         dev.off()
 
         # ggsave(generate_fig_name(output_rds_file, "dendro"))
