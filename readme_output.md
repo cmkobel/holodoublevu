@@ -65,6 +65,6 @@ The proteins in each module are subjected to pathway enrichment analysis. This h
 The proteins in each module come from a specific species. Thes heatmap shows the count of proteins from each species in each module. In the bottom, another heatmap shows which modules are significantly correlated to phenotypic traits.
 
 
-**results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/moduletrait_</trait>_*_</module>*.pdf**
+**results/ig/{imputation_group}/wgcna/inspected/module_membership_trait_significance/moduletrait_\<trait>_*_\<module>*.pdf**
 
 The correlation between protein and module (across samples) is also referred to as module membership or module eigengene connectivity. Proteins with high module membership are regarded as hub nodes because they're well connected within the module. These plots show the module-trait correlation as a function of module membership.
