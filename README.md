@@ -1,6 +1,6 @@
 # holodoublevu 🪢👀
 
-_"HOlistic LOw-level Denoising & OUtputting for BLEnded multi-View Unification"_ - (Sorry that backronym was made with chatgpt. But Holodoublevu is mine!
+_"HOlistic LOw-level Denoising & OUtputting for BLEnded multi-View Unification"_ - (Sorry that backronym was made with chatgpt. But Holodoublevu is mine!)
 
 
 > I'm a pipeline kinda guy.
