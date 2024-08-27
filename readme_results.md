@@ -22,7 +22,7 @@ Most files exist for all layers (digesta, digesta-time, wall, liver). The asteri
 
 **results/ig/{imputation_group}/wgcna/pst_*.pdf**
 
-Before the modules are called, the proteomic intensities are transformed with an exponent. This exponent is also known as a soft threshold and is set such that scale freeness of the protein network is achieved. Digesta layers tend to get a threshold around 12-15. Liver and well 6-8.
+Before the modules are called, the proteomic intensities are transformed with an exponent. This exponent is also known as a soft threshold and is set such that scale freeness of the protein network is achieved. Digesta layers tend to get a threshold around 12-15. Liver and wall 6-8.
   
 **results/ig/{imputation_group}/wgcna/hclust_*.pdf**
 
