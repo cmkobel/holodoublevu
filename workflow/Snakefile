@@ -58,6 +58,13 @@ rule all:
 
         [f"results/ig/{i}/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.rds" for i in config["imputation_group"].keys()],
         
+        
+        
+        [f"results/ig/{i}/wgcna/inspected/contrasting_visualizations/plot.flag" for i in config["imputation_group"].keys()],
+        
+        
+
+        
         # TODO:
         # WGCNA holomodules, export to cytoscape for visualization.
         # Alluvial, proteomics on genomes
