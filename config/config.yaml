@@ -1,9 +1,9 @@
 
 # threadripper:
 principal_input_sample_metadata: "resources/metadata_v1.6.tsv"
-principal_input_proteome_amino_acid_sequences: "/glittertind/home/carl/PhD/26_proteomics_analysis/holodoublevu/heavy_resources/supacow_amino_acid.faa"
-principal_input_proteome_intensities: "/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/00_uniform_data/proteomics_long_v2.rds"
-principal_input_proteome2genome_mapping: "/glittertind/home/carl/PhD/26_proteomics_analysis/proteomic_integration/results/01_maps/01_map_proteome2samples_c6_v4.rds.gz"
+principal_input_proteome_amino_acid_sequences: "/spaceface/projects/supacow/results/holodoublevu_heavy_resources/supacow_amino_acid.faa"
+principal_input_proteome_intensities: "/spaceface/projects/supacow/results/holodoublevu_heavy_resources/proteomics_long_v2.rds"
+principal_input_proteome2genome_mapping: "/spaceface/projects/supacow/results/holodoublevu_heavy_resources/01_map_proteome2samples_c6_v4.rds.gz"
 kegg_data: "resources/kegg_data.tsv"
 eggnog_database: "/spaceface/shared_databases/asscom2_v2.5.5+/eggnog/"
 
