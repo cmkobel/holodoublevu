@@ -3,11 +3,11 @@
 
 
 print()
-print("░  ░░░░  ░░░      ░░░  ░░░░░░░░░      ░░░       ░░░░      ░░░  ░░░░  ░░       ░░░  ░░░░░░░░        ░░  ░░░░  ░░  ░░░░  ░")
-print("▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒")
-print("▓        ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓▓▓▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓       ▓▓▓  ▓▓▓▓▓▓▓▓      ▓▓▓▓▓  ▓▓  ▓▓▓  ▓▓▓▓  ▓")
-print("█  ████  ██  ████  ██  ████████  ████  ██  ████  ██  ████  ██  ████  ██  ████  ██  ████████  ██████████    ████  ████  █")
-print("█  ████  ███      ███        ███      ███       ████      ████      ███       ███        ██        █████  ██████      ██")
+print("░░  ░░░░  ░░░      ░░░  ░░░░░░░░░      ░░░       ░░░░      ░░░  ░░░░  ░░       ░░░  ░░░░░░░░        ░░  ░░░░  ░░  ░░░░  ░░")
+print("▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒  ▒▒▒▒  ▒▒  ▒▒▒▒  ▒▒")
+print("▓▓        ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓▓▓▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓  ▓▓▓▓  ▓▓       ▓▓▓  ▓▓▓▓▓▓▓▓      ▓▓▓▓▓  ▓▓  ▓▓▓  ▓▓▓▓  ▓▓")
+print("██  ████  ██  ████  ██  ████████  ████  ██  ████  ██  ████  ██  ████  ██  ████  ██  ████████  ██████████    ████  ████  ██")
+print("██  ████  ███      ███        ███      ███       ████      ████      ███       ███        ██        █████  ██████      ███")
                                                                                                                         
 print(""" 
     Generalization and parametrization 
@@ -60,8 +60,8 @@ rule all:
         
         
         
-        [f"results/ig/{i}/wgcna/inspected/contrasting_visualizations/plot.flag" for i in config["imputation_group"].keys()],
-        
+        # I'm giving up on this one, because it is now on Velma's duty.
+        #[f"results/ig/{i}/wgcna/inspected/contrasting_visualizations/plot.flag" for i in config["imputation_group"].keys()],
         
 
         
@@ -332,6 +332,8 @@ pack_pdf = """
     grep "vsplit" results/ig/both/wgcna/inspected/module_membership_trait_significance/mm_ts_annotated_tax.tsv >> results/ig/both/vsplit.tsv
     
     echo "results/ig/both/vsplit.tsv" >> files_to_zip
+    echo "results/ig/both/wgcna/inspected/module2module.rds" >> files_to_zip
+
     
     cp readme_results.md results/readme_results.md
     echo "results/readme_results.md" >> files_to_zip

@@ -183,7 +183,7 @@ wanted_keys <- list(
 
 bicor_module2module <- lapply(
     wanted_keys,
-    function(i) { # i = list(A = 1, B = 7) # DEBUG
+    function(i) { # i = list(A = 1, B = 4) # DEBUG
         message(i$plot_title)
         pdf(generate_fig_name(output_rds_file, paste_("axis", groups$imputation_group[[1]], i$plot_title)), height = height, width = width)
 
@@ -231,16 +231,21 @@ bicor_module2module <- lapply(
         ) %>%
             select(-animal) %>%
             column_to_rownames("sample")
+        
+        
 
 
         message("left dimension: ", nrow(left_hand_side), " ", ncol(left_hand_side))
         message("right dimension: ", nrow(right_hand_side), " ", ncol(right_hand_side))
 
 
+        
+        # We should save this file, because it will be used for investigating indirect holo-omic correlations.
         bicor_results <- bicorAndPvalue(
             left_hand_side,
             right_hand_side
         )
+        
 
 
         presentable_A <- filter(groups, group_index == i$A)$presentable
@@ -287,47 +292,39 @@ if (!interactive()) {
 }
 
 
-# We can extract significant module pairs from the bicor_module2module (axis) table holo module pairs or axis module pairs? axis couple? holo module couple?
-
-    
-axis_couples = base::lapply(
+# Even though bicor_module2module is already outputted, I think it is a good idea to format it like the other files so everything fits better together
+axis_couples = lapply(
     bicor_module2module,
-    function(x) { # x = bicor_module2module[1]
-    
-        x$bicor$p %>% # p, the Student p-values corresponding to the calculated correlations
-            as_tibble(rownames = "module_A") %>% 
+    function(i) { # i = bicor_module2module[[1]]
+        
+        message("rows X columns: ", i$A, " X ", i$B)
+        
+        coefficients = i$bicor$bicor %>% 
+            as_tibble(rownames = "A_module") %>% 
+            pivot_longer(-A_module, names_to = "B_module", values_to = "coefficient")
+        
+        pvalues = i$bicor$p %>% 
+            as_tibble(rownames = "A_module") %>% 
+            pivot_longer(-A_module, names_to = "B_module", values_to = "pvalue")
+        
+        all(coefficients$A_module == pvalues$A_module)
+        all(coefficients$B_module == pvalues$B_module)
+        
+        coefficients %>% 
+            left_join(pvalues, by = c("A_module", "B_module")) %>% 
+            mutate(A_module_index = i$A, B_module_index = i$B) %>% 
+            mutate(A_module_presentable = i$presentable_A, B_module_presentable = i$presentable_B)
             
-            pivot_longer(-module_A, names_to = "module_B", values_to = "pvalue") %>%  
+        
             
-            filter(pvalue < 0.05) %>% 
-            # This is stupid, but it works. "Tidy data", right? And then I can't fuck it up by having the wrong "wanted_keys" table laying around in a corner.
-            mutate(
-                module_A_index = x$A,
-                module_B_index = x$B,
-                presentable_A = x$bicor$presentable_A,
-                presentable_B = x$bicor$presentable_B
-            ) %>% 
-            
-            # Add the bicor values. This was the simplest way I could think of. 
-            left_join(
-                x$bicor$bicor %>% # bicor, the calculated correlations
-                    as_tibble(rownames = "module_A") %>% 
-                    pivot_longer(-module_A, names_to = "module_B", values_to = "bicor"),
-                by = c("module_A", "module_B")
-            ) %>% 
-            identity()
+        
     }
-)  %>% 
-bind_rows() %>% 
+) %>% bind_rows()
 
-# Since the names (i.e. "ME3", "ME4") are overlapping between sources, we must include the group index in the module name.
-mutate(
-    module_A_complete = paste(module_A_index, module_A, sep = "|"),
-    module_B_complete = paste(module_B_index, module_B, sep = "|"),
-    
-) 
 
-axis_couples %>%
+axis_couples
+
+axis_couples %>% 
     write_rds_and_tsv(paste0(dirname(output_rds_file), "/axis_couples.rds"))
 
 
@@ -423,7 +420,7 @@ trait_modules_of_interest = lapply(
     stopifnot(all(a$trait == b$trait))
     
     bind_cols(a, b %>% select(pvalue)) %>%
-        filter(pvalue <= 0.05) %>%
+        
         mutate(group_index = i$group_index) %>%
         relocate(group_index, trait) %>%
         arrange(group_index, trait)
@@ -506,9 +503,10 @@ mm_gs = lapply(
 )
 
 
+
 # Plot each module that is significantly correlated to a trait.
 mm_gs_filtered = lapply(
-    trait_modules_of_interest %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% rowwise() %>% group_split)[[92]]
+    trait_modules_of_interest %>% filter(pvalue < 0.05) %>% rowwise() %>% group_split(), # i = (trait_modules_of_interest %>% filter(pvalue < 0.05) %>% rowwise() %>% group_split())[[92]]
     function(i) { 
         
         presentable_ = filter(groups, group_index == i$group_index)$presentable

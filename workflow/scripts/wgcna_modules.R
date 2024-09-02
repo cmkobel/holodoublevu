@@ -238,13 +238,15 @@ net_results <- lapply(
         # settings 1: 57 both digesta slaughter
         # settings 2: 82 both digesta slaugther
         # settings 3: 65
+        # settings 4: 82
+        # settings 5: 82
         net <- blockwiseModules(
             datExpr = datExpr,
             power = current_power,
             networkType = "signed",
             TOMType = "signed",
-            corType = "bicor", # Wanxin's idea.
-            deepSplit = 1, # def 2
+            #corType = "bicor", # Wanxin's idea.
+            deepSplit = 2, # def 2
             #detectCutHeight = 0.97,# .995, .98 gave 53
             numericLabels = T, # T if you want to manually recolor.
             #reassignThreshold = 0, # Torgeir's suggestion # 53 modules before writing this

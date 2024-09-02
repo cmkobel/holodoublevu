@@ -65,7 +65,7 @@ lapply(
             ) %>%
             
             count(tax_genus) %>%
-            mutate(n >= quantile(n, 1-0.02)) %>%
+            mutate(n >= quantile(n, 1-0.0000005)) %>% # Hmmmm there is an error here??
             distinct(tax_genus)
         
         
@@ -81,15 +81,13 @@ lapply(
             plot_data = mm_ts %>%
                 filter(group_index == i$group_index) %>%
                 filter(trait == "vsplit") %>%
-                
-                #right_join(significant_species) %>% # Only the species which have an exclusive number of proteins.
                 count(tax_intermediate = tax_kingdom, tax_genus, module) %>%
                 
                 mutate(module = factor(module, levels = trait_module_order$module))
             
             plot_data %>%
                 ggplot(aes(module, tax_genus, fill = n)) + 
-                scale_fill_viridis_b(trans = "log") +
+                scale_fill_viridis_b(trans = "log") + # works, but has too many digits
                 ggforce::facet_col(tax_intermediate ~ ., scales = "free_y", space = "free") +
                 geom_tile() + 
                 labs(
@@ -99,7 +97,7 @@ lapply(
                 )
             
             
-            
+        
             height_multiplier <- plot_data %>%
                 distinct(tax_genus) %>%
                 count(tax_genus) %>%
