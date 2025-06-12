@@ -1,5 +1,11 @@
 # holodoublevu 🪢👀
 
+
+
+[![DOI](https://zenodo.org/badge/840225002.svg)](https://doi.org/10.5281/zenodo.15646870)
+
+
+
 _"HOlistic LOw-level Denoising & OUtputting for BLEnded multi-View Unification"_ - (Sorry that backronym was made with chatgpt. But Holodoublevu is mine!)
 
 
